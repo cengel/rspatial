@@ -18,7 +18,7 @@ These workshops require a basic familiarity with R. __If you don't know R at all
 _Nov 7, 2016, 3-5pm:_ 
 
 - [Spatial data types in R](2_spDataTypes.nb.html) (requires introductory knowledge about R) 
-- Spatial operations in R (requires knowledge about R spatial data types) 
+- [Spatial operations in R](3_spDataOps.nb.html) (requires knowledge about R spatial data types) 
 
 _Nov 14, 2016, 3-5pm:_
 
