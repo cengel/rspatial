@@ -29,7 +29,7 @@ opts_chunk$set(echo=TRUE,
 
 ***
 
-Make sure you have the `sp` and `raster` libraries installed. [Note that the latest `raster`(2.5-2) depends on `sp` (≥ 1.2-0), so make sure that your versions align.]
+Make sure you have the `sp` and `raster` libraries installed. [Note that the latest `raster`(2.5-2) depends on `sp` (Ã¢Â‰Â¥ 1.2-0), so make sure that your versions align.]
 
 __Mac users__ 
 

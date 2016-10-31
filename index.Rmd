@@ -1,0 +1,44 @@
+---
+title: "Introduction to Mapping and Spatial Analysis with R"
+output: html_document
+---
+
+> Nov 7 & 14 2016  
+> Branner Earth Sciences Library - Teaching Corner   
+> Mitchell Earth Sciences Building
+
+Goal of these workshops is to provide an introduction to R as tool to visualize and analyze spatial data. Each part builds on the previous part, so if you are new to R I recommend you take them in the suggested order. If you have prior knowledge of R you can join for only the parts you are interested in.
+
+Each part is about 1-1.5 hours. I will do my best to make them as hands on as possible and provide code for you to work through. Due to my background, examples are social science biased. 
+
+These workshops require a basic familiarity with R. __If you don't know R at all, please take the Introductory R workshop__ (Wed Nov 2, 2-4pm, SSRC Seminar Room 121A, Green Library) first, which is offered by [SSDS](https://ssds.stanford.edu/).
+
+
+### Upcoming spatial workshops (please sign up [here](http://goo.gl/forms/VutZAC4MRN)):
+_Nov 7, 2016, 3-5pm:_ 
+
+- [Spatial data types in R](2_spDataTypes.nb.html) (requires introductory knowledge about R) 
+- Spatial operations in R (requires knowledge about R spatial data types) 
+
+_Nov 14, 2016, 3-5pm:_
+
+- Making maps in R  (requires knowledge about R spatial data types)
+- Geocoding in R (requires knowledge about R spatial data types)
+
+__Please bring your own laptop.__
+
+
+### Books
+- Roger Bivand et al.:  [Applied Spatial Data Analysis with R](http://www.springer.com/statistics/life+sciences,+medicine+%26+health/book/978-1-4614-7617-7) (2nd ed. 2013)
+- Chris Brunsdon & Lex Comber:  [An Introduction to R for Spatial Analysis and Mapping](http://www.sagepub.com/books/Book241031/reviews?siteId=sage-us&prodTypes=any&q=An+Introduction+to+R+for+Spatial+Analysis+and+Mapping&fs=1#tabview=toc) (2015)
+
+### Online resources
+- [Introduction to visualising spatial data in R](http://cran.r-project.org/doc/contrib/intro-spatial-rl.pdf) (by Robin Lovelace & James Cheshire)
+- [An Introduction to Mapping and Spatial Modelling R](http://www.researchgate.net/profile/Richard_Harris5/publication/258151270_An_Introduction_to_Mapping_and_Spatial_Modelling_in_R/links/0c9605272348c432b8000000.pdf?ev=pub_ext_doc_dl&origin=publication_list&inViewer=true) (by Richard Harris)
+- CRAN Task View: [Analysis of Spatial Data](http://cran.r-project.org/web/views/Spatial.html)
+- [Software for Spatial Statistics](http://www.jstatsoft.org/v63) (Journal of Statistical Software 63, Feb 2015)
+- [Spatial and space-time data with R](http://oscarperpinan.github.io/spacetime-vis/)
+- [Stackoverflow](http://stackoverflow.com/questions/tagged/r)
+- [My unedited R bookmarks](https://www.diigo.com/user/cengel/R?type=all&sort=updated)
+- [Spatial data in R: Using R as a GIS](https://github.com/Pakillo/R-GIS-tutorial/blob/master/R-GIS_tutorial.md) 
+- [r-spatial](http://r-spatial.org/)
