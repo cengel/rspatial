@@ -42,3 +42,12 @@ __Please bring your own laptop.__
 - [My unedited R bookmarks](https://www.diigo.com/user/cengel/R?type=all&sort=updated)
 - [Spatial data in R: Using R as a GIS](https://github.com/Pakillo/R-GIS-tutorial/blob/master/R-GIS_tutorial.md) 
 - [r-spatial](http://r-spatial.org/)
+
+### A word about R notebooks
+
+- Workshop materials are provided as R notebooks.
+- It's a [new thing](https://blog.rstudio.org/2016/10/05/r-notebooks/).
+- You can download the _.Rmd_ file that generates the notebook using the dropdown (top right).
+- Here is what you can do with it:
+    - Install a [preview release of RStudio](https://www.rstudio.com/products/rstudio/download/preview/), open the file. You can then execute the R code directly using the little green arrow on top of each R code chunk.
+    - Open the file with a stable release RStudio version. You can then execute the R code by placing your cursor in each line of code and hitting `Ctrl-Enter`.
