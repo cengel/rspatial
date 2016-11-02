@@ -7,33 +7,28 @@ output:
     toc: true
     toc_depth: 4
 ---
-
-```{r knitr_init, echo=FALSE, cache=FALSE}
-library(knitr)
-
-## libraries needed for R code examples
-library(sp)
-library(raster)
-
-## Global options
-#options(max.print="75")
-opts_chunk$set(echo=TRUE,
+```{r setup, include=FALSE}
+## Global code options
+knitr::opts_chunk$set(echo=TRUE,
 	             cache=TRUE,
                prompt=FALSE,
                tidy=TRUE,
                comment=NA,
                message=FALSE,
                warning=FALSE)
-#opts_knit$set(width=75)
+
+## libraries needed for R code examples
+library(sp)
+library(raster)
 ```
 
 ***
 
-Make sure you have the `sp` and `raster` libraries installed. [Note that the latest `raster`(2.5-2) depends on `sp` (Ã¢Â‰Â¥ 1.2-0), so make sure that your versions align.]
+For this module you need to have the [`sp`](https://CRAN.R-project.org/package=sp) and [`raster`](https://CRAN.R-project.org/package=raster) libraries installed and loaded. [Note that the latest `raster`(2.5-8) depends on `sp` 1.2-0 or later, so make sure that your versions align.]
 
 __Mac users__ 
 
-Since there is now a Mac binary package for `rgdal` [available on CRAN](https://cran.r-project.org/web/packages/rgdal/index.html) a installing `sp` with the default settings will also install this `rgdal` as one of its dependencies,  which includes a built-in basic GDAL that lacks all the extra GDAL formats can handle. There is an alternative `rgdal` distributed by kyngchaos that you can use instead. Formats **not** included in the CRAN distribution but included in the kyngchaos distribution are currently: DODS, Geomedia, Interlis 1, Interlis 2, LIBKML, MSSQLSpatial, NAS, ODBC, OGDI, PGeo, PostgreSQL, OSI, Walk, XLS. (You mostly might care about having the PostgreSQL driver at some point.)
+Since there is now a Mac binary package for `rgdal` [available on CRAN](https://CRAN.R-project.org/package=rgdal) installing `sp` with the default settings will also install that `rgdal` as one of its dependencies. It includes a built-in basic GDAL that lacks some of the extra GDAL formats can handle. There is an alternative `rgdal` package distributed by kyngchaos that you can use instead. Formats **not** included in the CRAN distribution but included in the kyngchaos distribution are currently: DODS, Geomedia, Interlis 1, Interlis 2, LIBKML, MSSQLSpatial, NAS, ODBC, OGDI, PGeo, PostgreSQL, OSI, Walk, XLS. (You mostly might care about having the PostgreSQL driver at some point.)
 
 
 If you __DON'T__ care, simply say:
@@ -50,13 +45,13 @@ If you __DO__ care, follow the instructions below.
 
         install.packages("sp", dependencies = F)
 
-#. Download the latest GDAL complete from [this site](http://www.kyngchaos.com/files/software/frameworks)
+#. Download the latest GDAL complete (GDAL 2.1) from [this site](http://www.kyngchaos.com/software/frameworks)
 
 #. Doubleclick and install the downloaded `.dmg` file as you are used to on a Mac.
 
-#. Make sure you have R Version 3.2 or later installed -- if not update it.
+#. Make sure you have R Version 3.3 or later installed -- if not update it.
 
-#. Download a different rgdal from [this site](http://www.kyngchaos.com/files/software/frameworks).  
+#. Download a different rgdal (rgdal 1.1.10-1) from [the same site](http://www.kyngchaos.com/software/frameworks).  
 
 #. Doubleclick to open the `.dmg` file
 
@@ -74,7 +69,8 @@ __Mac and Windows__
 
 Test if all went well:
 
-    library (rgdal)
+    library(sp)
+    library(raster)
 
 ***
 
@@ -82,7 +78,7 @@ Test if all went well:
 
 ### Conceptualizing a spatial Object
 
-In vector GIS we deal with, points, lines, and polygons:
+In vector GIS we deal with, points, lines, and polygons, like so:
 
 ```{r echo=FALSE}
 px <- c(5, 7, 8, 9, 8, 7, 6) 
@@ -98,7 +94,7 @@ lines(c(8, 9), c(14, 12))
 
 #### Exercise 1
 
-Discuss with your neighbor: What do we need to specify in order to define spatial vector data?
+Discuss with your neighbor: What do we need to specify in order to describe these kinds of spatial vector data?
 
 * lat/lon coordinates
 * projection
@@ -112,12 +108,11 @@ In R the `sp` package provides classes and methods for spatial data types[^1].
 
 [^1]: From R Bivand (2011) [Introduction to representing spatial objects in R](http://geostat-course.org/system/files/monday_slides.pdf)
 
-Development of the `sp` began in the early 2000s in an attempt to standardize how spatial data would be treated in R and to allow for better interoparbility between different analysis packages that use spatial data. The package provides classes and methods to create _points_, _lines_, _polygons_, and _grids_ and to operate on them. It is one of the most important packages that you will need to use if dealing with spatial data in R. Many of the spatial analysis packages now use the spatial data types that are implemented in `sp` i.e. they "depend" on the `sp` package.
-
+Development of the `sp` package began in the early 2000s in an attempt to standardize how spatial data would be treated in R and to allow for better interoperability between different analysis packages that use spatial data. The package provides classes and methods to create _points_, _lines_, _polygons_, and _grids_ and to operate on them. It is one of the most important packages that you will need to use if dealing with spatial data in R. Many of the spatial analysis packages now use the spatial data types that are implemented in `sp` i.e. they "depend" on the `sp` package.
 
 In `sp` spatial objects are conceptualized in the following way[^2]:
 
-[^2]: Note that this is not the only way spatial objects are conceptualized in R. Other spatial packages may use their own class definitions for spatial data (for example `spatstat`). `sp` provides conversion functions for many of those formats.
+[^2]: Note that this is not the only way spatial objects are conceptualized in R. Other spatial packages may use their own class definitions for spatial data (for example `spatstat`). Usuallly you can find functions that convert `sp` objects to and from these formats.
 
 The foundational structure for *any* spatial object in `sp` is the `Spatial` class. It has two slots (new-style class objects in R have pre-defined components called slots):
 
@@ -131,30 +126,35 @@ In order to create a spatial object manually the basic steps are:
 
 > I. Create a bunch of points, lines, or polygons (details below)
  
-> II. Convert those to a `Spatial*` object (`*` stands for Points, Lines, or Polygons). This steps adds the bounding box (automatically) and the slot for the Coordinate Reference System or CRS (which needs to be filled manually). 
+> II. Convert those to a `Spatial*` object (`*` stands for Points, Lines, or Polygons). This steps adds the bounding box (automatically) and the slot for the Coordinate Reference System or CRS (which needs to be filled with a value manually). 
  
 > III. (_Optional_:) Add a data frame with attribute data, which will turn your `Spatial*` object into a `Spatial*DataFrame` object.
 
 ### I. Create geometric objects (topology)
 
-__Points__ (which may have 2 or 3 dimensions) as the most basic spatial data object. They are generated out of either a single coordinate or a set of coordinates[^3], like a two-column matrix or a dataframe with a column for latitude and one for longitude. 
+__Points__ (which may have 2 or 3 dimensions) are the most basic spatial data objects. They are generated out of either a single coordinate or a set of coordinates[^3], like a two-column matrix or a dataframe with a column for latitude and one for longitude. 
 
 [^3]: Coordinates should be of type double and will be promoted if not.
 
-__Lines__ are generated out of `Line` objects. A `Line` object is a spaghetti collection of 2D coordinates and is generated out of a two-column matrix or a dataframe with a column for latitude and one for longitude. A `Lines` object is a __list__ of `Line` objects, for example all the contours at a single elevation.
+__Lines__ are generated out of `Line` objects. A `Line` object is a spaghetti collection of 2D coordinates and is generated out of a two-column matrix or a dataframe with a column for latitude and one for longitude. A `Lines` object is a __list__ of one or more `Line` objects, for example all the contours at a single elevation.
 
-__Polygons__ are generated out `Polygon` objects. A `Polygon` object is a spaghetti collection of 2D coordinates with equal first and last coordinates and is generated out of a two-column matrix or a dataframe with a column for latitude and one for longitude. A `Polygons` object is a __list__ of `Polygon` objects, for example islands belonging to the same country.
+__Polygons__ are generated out of `Polygon` objects. A `Polygon` object is a spaghetti collection of 2D coordinates with equal first and last coordinates and is generated out of a two-column matrix or a dataframe with a column for latitude and one for longitude. A `Polygons` object is a __list__ of one or more `Polygon` objects, for example islands belonging to the same country.
 
 
 ### II. Create spatial objects
-Both `Line/Lines and Polygon/Polygons` objects are part of the R's basic `graphics` package. So we need to turn those into spatial, i.e. "geographically aware" objects. `SpatialPoints` are directly made out of the coordinates. `SpatialLines` and `SpatialPolygons` objects are made using lists of `Lines` or `Polygons` objects respectively.
+`SpatialPoints` can be directly generated out of the coordinates. Lines and polygons are part of the R's basic `graphics` package used for plotting, but we need to turn those into spatial, i.e. "geographically aware" objects. The `sp` package provides functions do do that. `SpatialLines` and `SpatialPolygons` objects are generated using lists of `Lines` or `Polygons` objects respectively (more below).
 
 ### III. Add attributes
 The points in a `SpatialPoints` object may be associated with a row of attributes to create a `SpatialPointsDataFrame` object. The coordinates and attributes may, but do not have to be keyed to each other using ID values.
 
-`SpatialLinesDataFrame` and `SpatialPolygonsDataFrame` objects are defined using `SpatialLines` and `SpatialPolygons` objects and standard data frames, and the ID fields are here required to match the data frame row names.
+`SpatialLinesDataFrame` and `SpatialPolygonsDataFrame` objects are defined using `SpatialLines` and `SpatialPolygons` objects and data frames. The ID fields are here required to match the data frame row names.
 
-![Simplified diagram of how spatial objects are created in `sp`](images/createSpatialObj.png)
+| How | to | create | spatial | objects: |
+| --- | --- | --- | --- | --- |
+| matrix or data frame with coordinates | &#x2192; | &#x2192; | SpatialPoints(coordinates) | SpatialPointsDataFrame(SpatialPoints object and data frame) |
+| matrix or data frame with coordinates | Line(coordinates) | Lines(list of Line objects) | SpatialLines(list of Lines objects) | SpatialLinesDataFrame(SpatialLines object and data frame, matched by ID) |
+| matrix or data frame with coordinates | Polygon(coordinates) | Polygons(list of Polygon objects) | SpatialPolygons(list of Polygons objects) | SpatialPolygonsDataFrame(SpatialPolygons object and data frame, matched by ID) |
+
 
 ### Spatial methods
 
@@ -162,13 +162,13 @@ A number of spatial methods are available for the classes in `sp`. Among the one
 
 method/class | and what it does
 ------------ | ------------------------------------------------------
-`bbox(x)` | returns the bounding box coordinates
-`proj4string(x)` | sets or retrieves projection attributes using the CRS object.
+`bbox()` | returns the bounding box coordinates
+`proj4string()` | sets or retrieves projection attributes using the CRS object.
 `CRS()` | creates an object of class of coordinate reference system arguments
-`spplot(x)` | plots a separate map of all the attributes unless specified otherwise
-`coordinates(x)` | returns a matrix with the spatial coordinates. For spatial polygons it returns the centroids.
-`over(x, y)` | used for example to retrieve the polygon or grid indexes on a set of points - we'll come back to that one later
-`spsample(x)` | sampling of spatial points within the spatial extent of objects
+`spplot()` | plots a separate map of all the attributes unless specified otherwise
+`coordinates()` | returns a matrix with the spatial coordinates. For spatial polygons it returns the centroids.
+`over(a, b)` | used for example to retrieve the polygon or grid indexes on a set of points - we'll come back to that one later
+`spsample()` | sampling of spatial points within the spatial extent of objects
 
 ### Creating a spatial object from scratch
 
@@ -186,9 +186,15 @@ plot(xy.sp, pch = 2)
 Test out some commands:
 ```{r}
 coordinates(xy.sp)
+```
+```{r}
 bbox(xy.sp)
-str(xy.sp)
+```
+```{r}
 summary(xy.sp)
+```
+```{r}
+str(xy.sp)
 ```
 
 Add attributes:
@@ -197,6 +203,8 @@ df <- data.frame(attr1 = LETTERS[1:10], attr2 = c(10:1))
 xy.spdf <- SpatialPointsDataFrame(xy.sp, df)
 summary(xy.spdf)
 ```
+
+>> CHECK OUT THE BELOW
 
 Some subsetting:
 ```{r}
@@ -209,13 +217,12 @@ xy.spdf[["attr2"]]    # column with "attr2" only
 
 A `SpatialPointsDataFrame` object can be created directly from `data.frames` by specifying which columns contain the coordinates. This is interesting, for example if you have a spreadsheet that contains latitude, longitude and some values. You an read this into a data frame with `read.table`, and then create the object from the data frame in one step by using the `coordinates()` command. That automatically turns the dataframe object into a `SpatialPointsDataFrame`:
 
-
 ***
 ####Exercise 3
 
-1. If you haven't already, create a new directory `R_Workshop` on your Desktop. 
+1. If you haven't already, create a new directory `R_Workshop` on your desktop. 
 2. Download and unzip [`RSpatialDataTypes.zip`](https://www.dropbox.com/s/g5p8b1xi2k5lydw/RSpatialDataTypes.zip?dl=1) in this directory.
-3. Set your working directory to  `R_Workshop`
+3. Set your working directory to  `R_Workshop` on your desktop
 4. Use `read.csv()` to read `PhiladelphiaZIPHousing.csv` into a dataframe in R and name it `ph.df`.
 5. Use `head()` to examine the first few lines of the dataframe.
 6. Use `class()` to examine which object class the table belongs to.
@@ -246,23 +253,29 @@ is.projected(ph.df) # voila
 
 The following example[^4] shows how a set of polygons are built from scratch. Note that the coordinates of the _Sr4_ polygon move in the opposite direction (anti-clockwise) than the other three (clockwise); _Sr4_ is meant to represent a hole in the _Sr3_ polygon. The default value for the hole colour is "transparent". Note that the Polygons objects have to be given character ID values, and that these values must be unique for `Polygons` objects combined in a `SpatialPolygons` object.
 
-[^4]:from [Edzer Pebesma Roger S. Bivand Feb 2005: S Classes and Methods for Spatial Data: the sp Package](http://cran.r-project.org/web/packages/sp/vignettes/intro_sp.pdf)
+[^4]:adapted from [Edzer Pebesma Roger S. Bivand Feb 2005: S Classes and Methods for Spatial Data: the sp Package](http://cran.r-project.org/web/packages/sp/vignettes/intro_sp.pdf)
 
 ```{r}
-# create polyon objects from coordinates
-Sr1 <-  Polygon(cbind(c(2,4,4,1,2),c(2,3,5,4,2)))
-Sr2 <-  Polygon(cbind(c(5,4,2,5),c(2,3,2,2)))
-Sr3 <-  Polygon(cbind(c(4,4,5,10,4),c(5,3,2,5,5)))
-Sr4 <-  Polygon(cbind(c(5,6,6,5,5),c(4,4,3,3,4)), hole = TRUE)
+# make up some coordinates, note that first and last coordinate pairs are identical
+coords1 <- cbind(c(2,4,4,1,2),c(2,3,5,4,2))
+coords2 <- cbind(c(5,4,2,5),c(2,3,2,2))
+coords3 <- cbind(c(4,4,5,10,4),c(5,3,2,5,5))
+coords4 <- cbind(c(5,6,6,5,5),c(4,4,3,3,4))
+
+# create individual polygon objects from coordinates
+poly1 <-  Polygon(coords1)
+poly2 <-  Polygon(coords2)
+poly3 <-  Polygon(coords3)
+poly4 <-  Polygon(coords4, hole = TRUE)
 
 # create lists of polygon objects from polygon objects and unique ID
-Srs1 <-  Polygons(list(Sr1), "s1")
-Srs2 <-  Polygons(list(Sr2), "s2")
-Srs3 <-  Polygons(list(Sr3, Sr4), "s3/4")
+polys1 <-  Polygons(list(poly1), "poly1")
+polys2 <-  Polygons(list(poly2), "poly2")
+polys3 <-  Polygons(list(poly3, poly4), "poly3/4")
 
 # create spatial polygons object from lists
-SpP <-  SpatialPolygons(list(Srs1,Srs2,Srs3), 1:3)
-plot(SpP)
+spatial_poly <-  SpatialPolygons(list(polys1,polys2,polys3))
+plot(spatial_poly, col="dark green")
 ```
 
 In order to add attributes to the polygons the `row.names` of the attributes data frame are matched with the ID slots of the SpatialPolygons object, and the rows of the data frame will be re-ordered if necessary.
