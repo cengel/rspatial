@@ -94,13 +94,16 @@ lines(c(8, 9), c(14, 12))
 
 #### Exercise 1
 
-Discuss with your neighbor: What do we need to specify in order to describe these kinds of spatial vector data?
+Discuss with your neighbor: What parameters do we need to specify in order to describe spatial vector objects?
 
-* lat/lon coordinates
-* projection
-* attribute data
-* if polygon, is it a hole or not
-* ... ?
+```{r}
+# * lat/lon coordinates
+# * projection
+# * attribute data
+# * if polygon, is it a hole or not
+# * ... ?
+```
+
 
 ***
 
@@ -199,17 +202,18 @@ str(xy_sp)
 
 Add attributes:
 ```{r}
-df <- data.frame(attr1 = LETTERS[1:10], attr2 = c(10:1))
+df <- data.frame(attr1 = c(LETTERS[1:5], LETTERS[1:5]), attr2 = rep(1:5, each = 2))
 xy_spdf <- SpatialPointsDataFrame(xy_sp, df)
 summary(xy_spdf)
 ```
 
->> CHECK OUT THE BELOW
-
 Some subsetting:
 ```{r}
-xy_spdf[1:2, ]        # row 1 and 2 only
-xy_spdf[["attr2"]]    # column with "attr2" only
+xy_spdf$attr2    # column with "attr2" only -- this is a vecor
+```
+
+```{r}
+xy_spdf[xy_spdf$attr1 == "A", ]    # selection of attr1 -- this is an SP object
 ```
 
 ***
