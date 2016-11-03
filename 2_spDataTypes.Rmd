@@ -219,7 +219,7 @@ xy_spdf[xy_spdf$attr1 == "A", ]    # selection of attr1 -- this is an SP object
 ***
 ### Creating a spatial object from a lat/lon table
 
-A `SpatialPointsDataFrame` object can be created directly from `data.frames` by specifying which columns contain the coordinates. This is interesting, for example if you have a spreadsheet that contains latitude, longitude and some values. You an read this into a data frame with `read.table`, and then create the object from the data frame in one step by using the `coordinates()` command. That automatically turns the dataframe object into a `SpatialPointsDataFrame`:
+A `SpatialPointsDataFrame` object can be created directly from a table by specifying which columns contain the coordinates. For example, you might have a spreadsheet that contains latitude, longitude and some attribute values. You can read the spreadsheet into a data frame with `read.table` or `read.csv` and create the SP object from the data frame in one step by using the `coordinates()` command. That automatically turns the data frame object into a `SpatialPointsDataFrame`:
 
 ***
 ####Exercise 3
@@ -241,6 +241,8 @@ What to you observe?
     `bubble(ph.df, "price")` or  
     `spplot(ph.df, "use")`
     
+>> ADD SOLUTION HERE
+
 ### A brief, but important word about projection.
 
 Note that the Spatial object you just created __does not__ have a projection defined. It is ok to plot, but be aware that for any meaningful spatial operation you will need to define a projection. 
@@ -255,7 +257,7 @@ is.projected(ph.df) # voila
 ***
 
 
-The following example[^4] shows how a set of polygons are built from scratch. Note that the coordinates of the _Sr4_ polygon move in the opposite direction (anti-clockwise) than the other three (clockwise); _Sr4_ is meant to represent a hole in the _Sr3_ polygon. The default value for the hole colour is "transparent". Note that the Polygons objects have to be given character ID values, and that these values must be unique for `Polygons` objects combined in a `SpatialPolygons` object.
+The following example[^4] shows how a set of polygons are built from scratch. Note that the coordinates of the _poly4_ polygon move in the opposite direction (anti-clockwise) than the other three (clockwise); _poly4_ is meant to represent a hole in the _poly3_ polygon. The default value for the hole colour is "transparent". `Polygons` objects have to be given **character ID values that are unique** when combined to a `SpatialPolygons` object.
 
 [^4]:adapted from [Edzer Pebesma Roger S. Bivand Feb 2005: S Classes and Methods for Spatial Data: the sp Package](http://cran.r-project.org/web/packages/sp/vignettes/intro_sp.pdf)
 
@@ -278,17 +280,22 @@ polys2 <-  Polygons(list(poly2), "poly2")
 polys3 <-  Polygons(list(poly3, poly4), "poly3/4")
 
 # create spatial polygons object from lists
-spatial_poly <-  SpatialPolygons(list(polys1,polys2,polys3))
+spatial_poly <-  SpatialPolygons(list(polys1, polys2, polys3), pO = 1:3)
 plot(spatial_poly, col="dark green")
 ```
 
-In order to add attributes to the polygons the `row.names` of the attributes data frame are matched with the ID slots of the SpatialPolygons object, and the rows of the data frame will be re-ordered if necessary.
+In order to add attributes to the polygons either the `row.names` of the attributes data frame need to be set to the Polygon ID values of the SpatialPolygons object or one column of the data frame needs to contain the matching Polygons IDs. The rows of the data frame will be re-ordered if necessary.
 
-Add attributes:
 ```{r}
-attr <- data.frame(numbers=1:3, characters=LETTERS[3:1], row.names=c("poly3/4", "poly1", "poly2"))
-spatial_polyDf <- SpatialPolygonsDataFrame(spatial_poly, attr)
-spplot(spatial_polyDf)
+attr1 <- data.frame(characters=LETTERS[1:3], row.names=c("poly1", "poly2", "poly3/4"))  # attribute values data frame with poly IDs as rownames
+spatial_polyDf <- SpatialPolygonsDataFrame(spatial_poly, attr1) # combine
+
+# this also works:
+attr2 <- data.frame(characters=LETTERS[1:3], polyIDs=c("poly1", "poly2", "poly3/4"))
+spatial_polyDf2 <- SpatialPolygonsDataFrame(spatial_poly, attr2, match.ID = "polyIDs") 
+
+spplot(spatial_polyDf) 
+# spplot(spatial_polyDf2, "characters")
 ```
 
 Let's look at its structure:
@@ -297,19 +304,19 @@ str(spatial_polyDf)
 ```
 Whoa. 
 
-Note that we can access the information in the slots using the `@`. For example 
+Note that we can access the information in the slots using the `@`. For example: 
 ```{r}
 spatial_polyDf@bbox
 ```
 
-However, it is **strongly encouraged** to use the provided functions and methods instead, like
+However, it is **strongly encouraged** to use the provided functions and methods instead, like:
 ```{r}
 bbox(spatial_polyDf)
 ```
 
 To look at the attribute table:
 ```{r}
-as.data.frame(spatial_polyDf) # instad of: spatial_polyDf@data
+as.data.frame(spatial_polyDf) # coerce into data frame instad of: spatial_polyDf@data
 ```
 
 ## 3. Getting spatial data in and out of R 
@@ -318,7 +325,7 @@ The good news is that typically we do not have to create `Spatial` family object
 
 ### How to work with `rgdal`
 
-In order to read those into R and turn them into `Spatial*` family objects we rely on the `rgdal` package. It provides us direct access to the powerful [GDAL library](http://gdal.org) from within R. 
+In order to read spatial data into R and turn them into `Spatial*` family objects we heavily rely on the `rgdal` package. It provides us direct access to the powerful [GDAL library](http://gdal.org) from within R. 
 
 We can read in and write out spatial data using:
 
