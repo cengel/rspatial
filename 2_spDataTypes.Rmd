@@ -4,7 +4,8 @@ author: "claudia a engel"
 date: "Last updated: `r format(Sys.time(), '%B %d, %Y')`"
 output: 
   html_notebook:
-    toc: true
+    code_folding: hide
+    toc: yes
     toc_depth: 4
 ---
 ```{r setup, include=FALSE}
@@ -169,7 +170,7 @@ function | and what it does
 `proj4string()` | sets or retrieves projection attributes using the CRS object.
 `CRS()` | creates an object of class of coordinate reference system arguments
 `spplot()` | plots a separate map of all the attributes unless specified otherwise
-`coordinates()` | returns a matrix with the spatial coordinates. For spatial polygons it returns the centroids.
+`coordinates()` | set or retrieve the spatial coordinates. For spatial polygons it returns the centroids.
 `over(a, b)` | used for example to retrieve the polygon or grid indexes on a set of points - we'll come back to that one later
 `spsample()` | sampling of spatial points within the spatial extent of objects
 
@@ -219,39 +220,47 @@ xy_spdf[xy_spdf$attr1 == "A", ]    # selection of attr1 -- this is an SP object
 ***
 ### Creating a spatial object from a lat/lon table
 
-A `SpatialPointsDataFrame` object can be created directly from a table by specifying which columns contain the coordinates. For example, you might have a spreadsheet that contains latitude, longitude and some attribute values. You can read the spreadsheet into a data frame with `read.table` or `read.csv` and create the SP object from the data frame in one step by using the `coordinates()` command. That automatically turns the data frame object into a `SpatialPointsDataFrame`:
+A `SpatialPointsDataFrame` object can be created directly from a table by specifying which columns contain the coordinates. For example, you might have a spreadsheet that contains latitude, longitude and some attribute values. You can read the spreadsheet into a data frame with `read.table` or `read.csv` and create the SP object from the data frame in one step by using the `coordinates()` function. As mentioned above that function can be used to retrieve spatial coordinates but also to set them, which is done in R fashion with:
+
+    coordinates(myDataframe) <- value
+
+`value` can have different forms -- in this example needs to be a character vector which specifies the data frame's columns for the longitude and latitude (x,y) coordinates.
+
+If we use this on a data frame it automatically converts the data frame object into a `SpatialPointsDataFrame` object.
 
 ***
 ####Exercise 3
 
-1. If you haven't already, create a new directory `R_Workshop` on your desktop. 
-2. Download and unzip [`RSpatialDataTypes.zip`](https://www.dropbox.com/s/g5p8b1xi2k5lydw/RSpatialDataTypes.zip?dl=1) in this directory.
-3. Set your working directory to  `R_Workshop` on your desktop
-4. Use `read.csv()` to read `PhiladelphiaZIPHousing.csv` into a dataframe in R and name it `ph.df`.
-5. Use `head()` to examine the first few lines of the dataframe.
-6. Use `class()` to examine which object class the table belongs to.
-7. Convert the table into a spatial object with:
-
-    `coordinates(ph.df) <- c("lon", "lat")`
-
-8. Use `class()`again to examine which object class the table belongs to now:  
+1. Download and unzip [`RSpatialDataTypes.zip`](https://www.dropbox.com/s/g5p8b1xi2k5lydw/RSpatialDataTypes.zip?dl=1)
+2. Use `read.csv()` to read `PhiladelphiaZIPHousing.csv` into a dataframe in R and name it `ph_df`.
+3. Use `head()` to examine the first few lines of the dataframe. What information does it contain?
+4. Use `class()` to examine which object class the table belongs to.
+5. Convert the table into a spatial object with using the `coordinates` function.
+6. Use `class()`again to examine which object class the table belongs to now:  
 What to you observe?
+7. Plot, using the attributes from the table, for example:  
+    `bubble(ph_df, "price")` or  
+    `spplot(ph_df, "use")`
 
-9. Plot, using the attributes from the table:  
-    `bubble(ph.df, "price")` or  
-    `spplot(ph.df, "use")`
-    
->> ADD SOLUTION HERE
+Try before you peek! 
+```{r eval=FALSE}
+ph_df <- read.csv("~/Desktop/RSpatialDataTypes/PhiladelphiaZIPHousing.csv")
+head(ph_df)
+class(ph_df)
+coordinates(ph_df) <- c("lon", "lat")
+class(ph_df)
+bubble(ph_df, "price")
+```
 
 ### A brief, but important word about projection.
 
 Note that the Spatial object you just created __does not__ have a projection defined. It is ok to plot, but be aware that for any meaningful spatial operation you will need to define a projection. 
 
-10. This is how it's done:
+9. This is how it's done:
 ```{r eval=FALSE}
-is.projected(ph.df) # see if a projection is defined  
-proj4string(ph.df) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") # this is WGS84
-is.projected(ph.df) # voila
+is.projected(ph_df) # see if a projection is defined  
+proj4string(ph_df) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") # this is WGS84
+is.projected(ph_df) # voila
 ```
 
 ***
@@ -280,7 +289,7 @@ polys2 <-  Polygons(list(poly2), "poly2")
 polys3 <-  Polygons(list(poly3, poly4), "poly3/4")
 
 # create spatial polygons object from lists
-spatial_poly <-  SpatialPolygons(list(polys1, polys2, polys3), pO = 1:3)
+spatial_poly <-  SpatialPolygons(list(polys1, polys2, polys3), pO = 1:3) # pO: plotting order
 plot(spatial_poly, col="dark green")
 ```
 
@@ -321,7 +330,7 @@ as.data.frame(spatial_polyDf) # coerce into data frame instad of: spatial_polyDf
 
 ## 3. Getting spatial data in and out of R 
 
-The good news is that typically we do not have to create `Spatial` family objects as tediously as we did above. It is much more common that we work with already existing spatial data. 
+The good news is that usually we do not have to create `SpatialPolygonDataframe` objects as tediously as we did above. It is much more common that we work with already existing spatial data. 
 
 ### How to work with `rgdal`
 
@@ -329,34 +338,48 @@ In order to read spatial data into R and turn them into `Spatial*` family object
 
 We can read in and write out spatial data using:
 
-`readOGR()` and `writeOGR()` (for vector)  
+    `readOGR()` and `writeOGR()` (for vector)  
+    `readGDAL()` and `writeGDAL()` (for raster/grids)
 
-`readGDAL()` and `writeGDAL()` (for raster/grids)
+The parameters provided for each function vary depending on the exact spatial file type you are reading. We will take an ESRI shapefile as an example. A shapefile - as you know - [consists of various files of the same name, but with different extensions](https://en.wikipedia.org/wiki/Shapefile). They should all be in one directory and that is what R expects.
 
-The parameters provided for each function vary depending on the exact spatial file type you are reading. We will take an ESRI shapefile as an example. A shapefile - as you know - [consists of various files](https://en.wikipedia.org/wiki/Shapefile), and R expects all those files to be in one directory. 
-
-When reading in a shapefile, `readOGR()` expects at least the following two arguments:
+When reading in a shapefile, `readOGR()` requires the following two arguments:
 
     datasource name (dsn)  # the path to the folder that contains the files
-                           # Note that this is a path to the folder, not a filename!
-    layer name (layer)     # the shapefile name without extension
-                           # Note that this is not a path but just the name of the file!
+                           # this is a path to the folder, not a filename!
+    layer name (layer)     # the shapefile name WITHOUT extension
+                           # this is not a path but just the name of the file!
 
-For example, if I have a shapefile called `Philadelphia.shp` and all its associated files (like _.dbf, .prj, .shx_) in a directory called `PH` on my desktop, and I have my working directory set to my desktop folder, my command to read this shapefile would look like this:
+Setting these arguments correctly can be cause of much headache for beginners, so let me spell it out:
 
-```
-readOGR(dsn = "PH", layer = "Philadelphia")
+- Firstly, you need to know where your shapefile is on your computer.
+
+- Secondly, you need to know R's current working directory. (In RStudio look under the Files tab, and navigate to the desired working directory and use the More dropdown to set it as current working directory. Alternatively, use `getwd()` and `setwd()` from the R command prompt.)
+
+- Lastly, `readOGR` only reads the file and spits it on your screen. But similarly to reading in csv tables you want to actually work with the file, so you need to assign it to an R object.
+
+For example:
+
+- I have a shapefile called `myShapefile.shp` and all its associated files (like _.dbf, .prj, .shx_, ...) in a directory called `myShapefileDir` in my desktop folder, 
+- I have my R working directory set to my desktop folder,
+- I want to assign the shape file to an R object called `myShape`.
+
+Then my command to read this shapefile would look like this:
+```{r eval=F}
+myShape <- readOGR(dsn = "myShapefileDir", layer = "myShapefile")
 ```
 or in short:
+```{r eval=F}
+myShape <- readOGR("myShapefileDir", "myShapefile")
 ```
-readOGR("PH", "Philadelphia")
-```
+
+Now let's do this.
 
 ***
 ####Exercise 4
 
 1. Load the `rgdal` package.
-2. Make sure your working directory is set to the `R_Workshop` folder and it contains the materials you downloaded and unzipped earlier.
+2. Set your working directory to the `R_Workshop` folder and make sure it contains the materials you downloaded and unzipped earlier.
 3. Read `PhillyTotalPopHHinc.shp` into an object called `philly`. Make sure you understand the directory structure.
 4. Examine the file, for example with `summary()`, `class()`, `str("philly", max.level = 2)`, 
 5. Take a look at the column names of the attribute data with `names()`
