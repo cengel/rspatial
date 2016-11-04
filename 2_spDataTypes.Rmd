@@ -243,6 +243,7 @@ What to you observe?
     `spplot(ph_df, "use")`
 
 > Try before you peek! 
+
 ```{r eval=FALSE}
 ph_df <- read.csv("~/Desktop/RSpatialDataTypes/PhiladelphiaZIPHousing.csv")
 head(ph_df)
@@ -257,6 +258,7 @@ bubble(ph_df, "price")
 Note that the Spatial object you just created __does not__ have a projection defined. It is ok to plot, but be aware that for any meaningful spatial operation you will need to define a projection. 
 
 9. This is how it's done:
+
 ```{r eval=FALSE}
 is.projected(ph_df) # see if a projection is defined  
 proj4string(ph_df) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") # this is WGS84
@@ -269,6 +271,7 @@ is.projected(ph_df) # voila
 The following example[^4] shows how a set of polygons are built from scratch. Note that the coordinates of the _poly4_ polygon move in the opposite direction (anti-clockwise) than the other three (clockwise); _poly4_ is meant to represent a hole in the _poly3_ polygon. The default value for the hole colour is "transparent". `Polygons` objects have to be given **character ID values that are unique** when combined to a `SpatialPolygons` object.
 
 [^4]:adapted from [Edzer Pebesma Roger S. Bivand Feb 2005: S Classes and Methods for Spatial Data: the sp Package](http://cran.r-project.org/web/packages/sp/vignettes/intro_sp.pdf)
+
 
 ```{r}
 # make up some coordinates, note that first and last coordinate pairs are identical
@@ -406,9 +409,7 @@ plot(philly); plot(philly_rich, add=T, col="red")
 
 ***
 
-GDAL supports over 200 [raster formats](http://www.gdal.org/formats_list.html) and [vector formats](http://www.gdal.org/ogr_formats.html). Use  
-`ogrDrivers()` and `gdalDrivers()`   
-(without arguments) to find out which formats your `rgdal` install can handle.
+GDAL supports over 200 [raster formats](http://www.gdal.org/formats_list.html) and [vector formats](http://www.gdal.org/ogr_formats.html). Use `ogrDrivers()` and `gdalDrivers()` (without arguments) to find out which formats your `rgdal` install can handle.
 
 
 ### Raster data
@@ -498,7 +499,7 @@ The respective function in `raster` package is called `raster()`.
 3. Examine by typing the name you gave the DEM 
 4. Extract contour lines and plot them with `contour()`
 
-> Try before you peek
+> Try before you peek!
 
 ```{r eval=F}
 library(raster)
