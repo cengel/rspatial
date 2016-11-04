@@ -114,6 +114,9 @@ In R the `sp` package provides classes and methods for spatial data types[^1].
 
 Development of the `sp` package began in the early 2000s in an attempt to standardize how spatial data would be treated in R and to allow for better interoperability between different analysis packages that use spatial data. The package provides classes and methods to create _points_, _lines_, _polygons_, and _grids_ and to operate on them. It is one of the most important packages that you will need to use if dealing with spatial data in R. Many of the spatial analysis packages now use the spatial data types that are implemented in `sp` i.e. they "depend" on the `sp` package.
 
+You should perhaps also be aware that a recently released R package [`sf`](https://cran.r-project.org/package=sf
+) which [approaches the modeling of spatial objects in a very different way](https://edzer.github.io/sfr/articles/sfr.html).
+
 In `sp` spatial objects are conceptualized in the following way[^2]:
 
 [^2]: Note that this is not the only way spatial objects are conceptualized in R. Other spatial packages may use their own class definitions for spatial data (for example `spatstat`). Usuallly you can find functions that convert `sp` objects to and from these formats.
