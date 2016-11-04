@@ -242,7 +242,7 @@ What to you observe?
     `bubble(ph_df, "price")` or  
     `spplot(ph_df, "use")`
 
-Try before you peek! 
+> Try before you peek! 
 ```{r eval=FALSE}
 ph_df <- read.csv("~/Desktop/RSpatialDataTypes/PhiladelphiaZIPHousing.csv")
 head(ph_df)
@@ -352,9 +352,9 @@ When reading in a shapefile, `readOGR()` requires the following two arguments:
 
 Setting these arguments correctly can be cause of much headache for beginners, so let me spell it out:
 
-- Firstly, you need to know where your shapefile is on your computer.
+- Firstly, you obviously need to know the name of shapefile.
 
-- Secondly, you need to know R's current working directory. (In RStudio look under the Files tab, and navigate to the desired working directory and use the More dropdown to set it as current working directory. Alternatively, use `getwd()` and `setwd()` from the R command prompt.)
+- Secondly, you need to know the name and location of the folder that contains all the shapefile parts.
 
 - Lastly, `readOGR` only reads the file and spits it on your screen. But similarly to reading in csv tables you want to actually work with the file, so you need to assign it to an R object.
 
@@ -365,11 +365,11 @@ For example:
 - I want to assign the shape file to an R object called `myShape`.
 
 Then my command to read this shapefile would look like this:
-```{r eval=F}
+```
 myShape <- readOGR(dsn = "myShapefileDir", layer = "myShapefile")
 ```
 or in short:
-```{r eval=F}
+```
 myShape <- readOGR("myShapefileDir", "myShapefile")
 ```
 
@@ -379,13 +379,30 @@ Now let's do this.
 ####Exercise 4
 
 1. Load the `rgdal` package.
-2. Set your working directory to the `R_Workshop` folder and make sure it contains the materials you downloaded and unzipped earlier.
-3. Read `PhillyTotalPopHHinc.shp` into an object called `philly`. Make sure you understand the directory structure.
-4. Examine the file, for example with `summary()`, `class()`, `str("philly", max.level = 2)`, 
-5. Take a look at the column names of the attribute data with `names()`
-6. Take a look at the attribute data with `head()`
-7. Note that subsetting works here: `philly[philly$totalPop > 5000,]` 
-8. Plot some attribute data: `spplot(philly, "medHHinc")`
+2. Determine the location of the folder enclosing the `PhillyTotalPopHHinc` shapefile.
+3. Read `PhillyTotalPopHHinc` into an object called `philly`. Make sure you provide the appropriate directory structure.
+4. Examine the object, for example with `summary()` or `class()`
+5. Plot it.
+6. Take a look at the column names of the attribute data with `names()`
+7. Take a look at the attribute data with `head()`
+8. Select a subset of polygons with a median household income (`medHHinc`) of over 60000.  
+9. Add that to the plot. In red.
+
+> Try before you peek!
+
+```{r eval=F}
+library(rgdal)
+philly <- readOGR("/Users/cengel/Desktop/RSpatialDataTypes/Philly/", "PhillyTotalPopHHinc") 
+# side note: unlike read.csv readOGR does not understand the ~ as valid element of a path. This (on Mac) will not work:
+# philly <- readOGR("~/Desktop/RSpatialDataTypes/Philly/", "PhillyTotalPopHHinc")
+summary(philly)
+class(philly)
+names(philly)
+head(philly)
+plot(philly)
+philly_rich <- philly[which(philly$medHHinc > 60000),]
+plot(philly); plot(philly_rich, add=T, col="red")
+```
 
 ***
 
