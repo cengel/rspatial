@@ -413,15 +413,15 @@ GDAL supports over 200 [raster formats](http://www.gdal.org/formats_list.html) a
 
 ### Raster data
 
-Rasters are much more compact that vectors. Because of their regular structure the coordinates do not need to be recorded for each pixel or cell in the rectangular extent. A raster is defined by:
+Raster files, as you probably know, have a much more compact data structure than vectors. Because of their regular structure the coordinates do not need to be recorded for each pixel or cell in the rectangular extent. A raster is defined by:
 
 - a CRS 
 - coordinates of its origin 
 - a distance or cell size in each direction 
 - a dimension or numbers of cells in each direction
-- an array of values 
+- an array of cell values 
 
-If necessary, the coordinates for any cell can be computed. 
+Given this structure, coordinates for any cell can be computed and don't need to be stored. 
 
 In `sp` the `GridTopology` class is the key element of raster representations[^5]. It contains 
 
@@ -443,14 +443,8 @@ datafr <- data.frame(runif(25)) # make up some data
 SpGdf <- SpatialGridDataFrame(gtopo, datafr) # create the grid data frame
 summary(SpGdf)
 ```
-And it can be plotted like this:
-```{r}
-spplot(SpGdf, sp.layout = c('sp.points', SpatialPoints(coordinates(SpGdf))))
-```
 
-
-Alternatively you can use the `raster` package, which works slightly differently. 
-
+A very good alternative is the `raster` package, which works slightly differently.  
 The `raster` package is a major extension of spatial data classes to access large rasters and in particular to process very large files. It includes object classes for `RasterLayer`, `RasterStacks`, and `RasterBricks`, functions for converting among these classes, and operators for computations on the raster data. Conversion from `sp` type objects into `raster` type objects is easy.
 
 If we wanted to do the same as above, namely creating the same raster object from scratch we would do the following:
@@ -472,7 +466,7 @@ Compare this to the output from above and __note something important here__: Dif
 
 Good to know.
 
-To add some values to the cells we could the following. Be aware that different from the `GridTopology` object above, which is converted to a `SpatialGridDataFrame` when adding values, this here object remains a `RasterLayer`.
+To add some values to the cells we could the following. Be aware that different from the `GridTopology` object above, which we converted to a `SpatialGridDataFrame` when adding values, this object here remains a `RasterLayer`.
 
 ```{r tidy=F}
 class(r)
@@ -483,32 +477,7 @@ plot(r); points(coordinates(r), pch=3)
 
 (See the [`rasterVis` package](https://cran.r-project.org/web/packages/rasterVis/index.html) for more advanced plotting of `Raster*` objects.)
 
-
-***
-
-#### Exercise 5
-
-We can use `readGDAL` from the `sp` package to read in a raster file. It will require one parameter as a minimum, which is the filename of the raster. So let's do this.
-
-1. Make sure your working directory is set to the `R_Workshop` folder and it contains the materials you downloaded and unzipped earlier.
-2. Read in with: `dem <- readGDAL("DEM_10m/bushkill_pa.dem")`[^6]
-3. Examine with `summary()` 
-
-Alternatively we can use the `raster` package to read in the same file:
-
-4. Load the `raster` library
-5. Read in with: `dem.r <- raster("DEM_10m/bushkill_pa.dem")`
-6. Examine with `dem.r` and compare to the above
-7. Extract contour lines and plot them: `contour(dem.r)`
-8. Note that this works too: `contour(dem)`
-
-***
-
-
-[^6]: From (https://www.e-education.psu.edu/geog482fall2/c7_p8.html)
-
-
-RasterLayer objects can also be created from a simple matrix.
+RasterLayer objects can also be created from a matrix.
 
 ```{r}
 class(volcano)
@@ -516,6 +485,31 @@ volcano.r <- raster(volcano)
 class(volcano.r)
 ```
 
-This package becomes interesting when you need to work for example with Landsat images that have multiple bands and want to perform map algebra.
+To read in a raster file we can use `readGDAL()` from the `sp` package, which requires only the filename of the raster as argument.
 
-There are currently about 140 [R packages on CRAN for reading, visualising, and analysing (geographical) spatial data](http://cran.r-project.org/web/views/Spatial.html). I recommend to visit that website if you are exploring spatial analysis with R.
+The respective function in `raster` package is called `raster()`.
+
+***
+
+#### Exercise 5
+
+1. Load the `raster` library
+2. Read in the DEM using the `raster()` function
+3. Examine by typing the name you gave the DEM 
+4. Extract contour lines and plot them with `contour()`
+
+> Try before you peek
+
+```{r eval=F}
+library(raster)
+dem.r <- raster("~/Desktop/RSpatialDataTypes/DEM_10m/bushkill_pa.dem")
+dem.r
+contour(dem.r)
+```
+
+***
+
+
+[^6]: From (https://www.e-education.psu.edu/geog482fall2/c7_p8.html)
+
+There are currently about 170 [R packages on CRAN for reading, visualising, and analysing (geographical) spatial data](http://cran.r-project.org/web/views/Spatial.html). I recommend to visit that website if you are exploring spatial analysis with R.
