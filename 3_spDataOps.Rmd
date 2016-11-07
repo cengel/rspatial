@@ -55,7 +55,7 @@ We would then say:
 require(sp) # make sure that is loaded
 worldCountries <- merge(worldCountries, countryData, by.x = "id-number", by.y = "countryID")
 ```
-If the names of the ID columns matched, we can omit them.
+If the names of the ID columns match, we can omit them.
 
 ***
 ### Exercise 1
@@ -131,7 +131,7 @@ You can retrieve the CRS from an existing `Spatial*` object with the `proj4strin
 
 > Try before you peek!
 
-```{r eval=F}
+```{r eval=FALSE}
 ph_homicides <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/PhillyCrime/", "PhillyHomicides")
 
 proj4string(philly)
@@ -150,11 +150,12 @@ plot(ph_homicides_aea, axes=TRUE)
 You should see something like:
 
 ```{r echo=FALSE, fig.height=4, fig.width=10}
-ph <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/PhillyCrime/", "PhillyHomicides", verbose = F)
-ph_aea <- spTransform(ph, CRS(proj4string(ph)))
+philly <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc", verbose = F) 
+ph_homicides <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/PhillyCrime/", "PhillyHomicides", verbose = F)
+ph_homicides_aea <- spTransform(ph_homicides, CRS(proj4string(philly)))
 par(mfrow=c(1,2)) 
-plot(ph, axes=TRUE)
-plot(ph_aea, axes=TRUE)
+plot(ph_homicides, axes=TRUE)
+plot(ph_homicides_aea, axes=TRUE)
 ```
 
 ***
@@ -213,10 +214,10 @@ names(ph_homicides_agg)
 head(ph_homicides_agg)
 
 ph_homicides_agg$hom_ratio <- ph_homicides_agg$OBJECTID/philly$totalPop
-spplot(ph_homicides_agg, "hom_ratio") #bad viz though
+hist(ph_homicides_agg$hom_ratio, nclass=100)
 ```
 
-> --> Comment about over() and point.in.poly {spatialEco}
+There might be other instances where we don't want to aggregate, but might only want to know which polygon a point falls into. In that case we can use `over()`. In fact, the `aggregate()` function used above makes use of `over()`. See https://cran.r-project.org/web/packages/sp/vignettes/over.pdf for more details on the over-methods. `point.in.poly()` from the `spatialEco` package intersects point and polygons and adds polygon attributes to points. There is also `point.in.polygon()` from the `sp` package which tests if a point or poins fall in a given polygon.
 
 ***
 
