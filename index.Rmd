@@ -22,8 +22,8 @@ _Nov 7, 2016, 3-5pm:_
 
 _Nov 14, 2016, 3-5pm:_
 
-- Making maps in R  (requires knowledge about R spatial data types)
-- Geocoding in R (requires knowledge about R spatial data types)
+- [Making maps in R](4_Mapping.nb.html) (requires knowledge about R spatial data types)
+- [Geocoding in R](5_Geocoding.nb.html) (requires knowledge about R spatial data types)
 
 __Please bring your own laptop.__
 
