@@ -56,8 +56,6 @@ There are a number of ways, for example:
 
 - **Rooftop Level** for Street adresses
 
-![Rooftop geocoding](http://developer.teradata.com/sites/all/files/images/image3.GIF)
-
 - Open access **gazetters or databases** for location/place names (http://geonames.org or http://geonames.usgs.gov/pls/gnispublic/) or IP adresses (http://freegeoip.net)
 
 ## Issues
