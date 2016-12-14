@@ -35,6 +35,7 @@ __Please bring your own laptop.__
 ### Online resources
 - [Introduction to visualising spatial data in R](http://cran.r-project.org/doc/contrib/intro-spatial-rl.pdf) (by Robin Lovelace & James Cheshire)
 - [An Introduction to Mapping and Spatial Modelling R](http://www.researchgate.net/profile/Richard_Harris5/publication/258151270_An_Introduction_to_Mapping_and_Spatial_Modelling_in_R/links/0c9605272348c432b8000000.pdf?ev=pub_ext_doc_dl&origin=publication_list&inViewer=true) (by Richard Harris)
+- DataCamp: [Working with Geospatial Data in R](https://www.datacamp.com/courses/working-with-geospatial-data-in-r) (by Charlotte Wickham)
 - CRAN Task View: [Analysis of Spatial Data](http://cran.r-project.org/web/views/Spatial.html)
 - [Software for Spatial Statistics](http://www.jstatsoft.org/v63) (Journal of Statistical Software 63, Feb 2015)
 - [Spatial and space-time data with R](http://oscarperpinan.github.io/spacetime-vis/)
