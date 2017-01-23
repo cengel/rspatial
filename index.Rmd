@@ -3,24 +3,23 @@ title: "Introduction to Mapping and Spatial Analysis with R"
 output: html_document
 ---
 
-> Nov 7 & 14 2016  
+> Feb 6 & 13 2017  
 > Branner Earth Sciences Library - Teaching Corner   
 > Mitchell Earth Sciences Building
 
-Goal of these workshops is to provide an introduction to R as tool to visualize and analyze spatial data. Each part builds on the previous part, so if you are new to R I recommend you take them in the suggested order. If you have prior knowledge of R you can join for only the parts you are interested in.
+Goal of these workshops is to provide an introduction to R as tool to visualize and analyze spatial data. Each part builds on the previous part, so if you are new to R I recommend you take them in the suggested order. If you have prior knowledge of R you can join for only the parts you are interested in. I will do my best to make the workshops as hands on as possible and provide code for you to work through. Due to my background, examples are social science biased. 
 
-Each part is about 1-1.5 hours. I will do my best to make them as hands on as possible and provide code for you to work through. Due to my background, examples are social science biased. 
-
-These workshops require a basic familiarity with R. __If you don't know R at all, please take the Introductory R workshop__ (Wed Nov 2, 2-4pm, SSRC Seminar Room 121A, Green Library) first, which is offered by [SSDS](https://ssds.stanford.edu/).
+These workshops require a basic familiarity with R. __If you don't know R at all, please take the Introductory R workshop first__ (Time and place TBA), which is offered by [SSDS](https://ssds.stanford.edu/).
 
 
-### Upcoming spatial workshops (please sign up [here](http://goo.gl/forms/VutZAC4MRN)):
-_Nov 7, 2016, 3-5pm:_ 
+### Upcoming spatial workshops (please sign up [here](https://goo.gl/forms/6YXrMVAkzKJYnJIz1)):
+_Feb 6, 2017, 3-5pm:_ 
+
 
 - [Spatial data types in R](2_spDataTypes.nb.html) (requires introductory knowledge about R) 
 - [Spatial operations in R](3_spDataOps.nb.html) (requires knowledge about R spatial data types) 
 
-_Nov 14, 2016, 3-5pm:_
+_Feb 13, 2017, 3-5pm:_
 
 - [Making maps in R](4_Mapping.nb.html) (requires knowledge about R spatial data types)
 - [Geocoding in R](5_Geocoding.nb.html) (requires knowledge about R spatial data types)
@@ -46,9 +45,9 @@ __Please bring your own laptop.__
 
 ### A word about R notebooks
 
-- Workshop materials are provided as R notebooks.
-- It's a [new thing](https://blog.rstudio.org/2016/10/05/r-notebooks/).
+- Workshop materials are provided [as R notebooks](http://rmarkdown.rstudio.com/r_notebooks.html).
 - You can download the _.Rmd_ file that generates the notebook using the dropdown (top right).
 - Here is what you can do with it:
-    - Install a [preview release of RStudio](https://www.rstudio.com/products/rstudio/download/preview/), open the file. You can then execute the R code directly using the little green arrow on top of each R code chunk.
-    - Open the file with a stable release RStudio version. You can then execute the R code by placing your cursor in each line of code and hitting `Ctrl-Enter`.
+    - Install [version 1.0 or higher of RStudio](https://www.rstudio.com/products/rstudio/download/), 
+    - Open the notebook file. 
+    - Execute the R code directly in the notebook using the little green arrow on top of each R code chunk.
