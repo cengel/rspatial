@@ -9,7 +9,7 @@ output: html_document
 
 Goal of these workshops is to provide an introduction to R as tool to visualize and analyze spatial data. Each part builds on the previous part, so if you are new to R I recommend you take them in the suggested order. If you have prior knowledge of R you can join for only the parts you are interested in. I will do my best to make the workshops as hands on as possible and provide code for you to work through. Due to my background, examples are social science biased. 
 
-These workshops require a basic familiarity with R. __If you don't know R at all, please take the Introductory R workshop first__ (Time and place TBA), which is offered by [SSDS](https://ssds.stanford.edu/).
+These workshops require a basic familiarity with R. __If you don't know R at all, please take the Introductory R workshop__ (Feb. 3, 3:30-5:30 PM, IC classroom in Green East), which is offered by [SSDS](https://ssds.stanford.edu/).
 
 
 ### Upcoming spatial workshops (please sign up [here](https://goo.gl/forms/6YXrMVAkzKJYnJIz1)):
