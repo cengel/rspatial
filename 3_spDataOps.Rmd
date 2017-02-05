@@ -15,6 +15,7 @@ library(sp)
 library(raster)
 library(rgdal)
 library(rgeos)
+library(sf)
 ```
 ***
 
@@ -22,6 +23,7 @@ In this section we will look at some libraries and commands that allow us to pro
 
 Before we start, please make sure you have the `sp`, `rgdal`, and `rgeos` installed. For `rgdal` installation instructions refer to [this earlier notebook](https://cengel.github.io/rspatial/2_spDataTypes.nb.html). 
 
+Data needed are [`RSpatialDataOps.zip`](https://www.dropbox.com/s/nrc89agtiiwf0m3/RSpatialDataOps.zip?dl=1)
 
 # 1. Attribute Join
 
@@ -35,7 +37,7 @@ In order to combine a `Spatial*Dataframe` with another table (which would be a d
 
 ![Attribute Join of countryData table to worldCountries using unique ID variables](images/attrJoin.png)
 
-The `sp` package hase a `merge` command which extends the one from the base package and works with Spatial* objects.
+The `sp` package has a `merge` command which extends the one from the base package and works with Spatial* objects.
 
 [^4]: The `geo_join()` command from the [`tigris` package](https://cran.r-project.org/web/packages/tigris/index.html) also provides a convenient way to merge a data frame to a spatial data frame.
 
@@ -52,7 +54,7 @@ where:
 We would then say:
 
 ```
-require(sp) # make sure that is loaded
+require(sp) # make sure it is loaded
 worldCountries <- merge(worldCountries, countryData, by.x = "id-number", by.y = "countryID")
 ```
 If the names of the ID columns match, we can omit them.
@@ -251,7 +253,7 @@ We will reuse `philly` for the census tract polygons.
 Ok. I will tell you:  
     Lat is 39.95258 and Lon is -75.16522. 
 
-With this information, create a `SpatialPoints` object named `philly_ctr`.  
+    With this information, create a `SpatialPoints` object named `philly_ctr`.  
 
 #. Create a buffer around the center.  
 Here is where we will use the `gBuffer()` function from the `rgeos` package. The function can take a number of arguments, but for this purpose we will only need two: the __sp object__ and the __width__ of the buffer, which is assumed to be in map units. The function returns a `SpatialPolygons` object to you with the buffer - name it `philly_buf`.  
@@ -300,13 +302,41 @@ plot (philly_buf, add=T, lwd = 2)
 philly <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc", verbose = F) 
 coords <- data.frame(x = -75.16522, y = 39.95258)
 philly_ctr <- SpatialPoints(coords, proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")) 
-philly_ctr_aea <- spTransform(philly_ctr, CRS(proj4string(philly))) # 
+philly_ctr_aea <- spTransform(philly_ctr, CRS(proj4string(philly))) 
 philly_buf <- gBuffer(philly_ctr_aea, width=2000)
 philly_buf_intersects <-  gIntersects (philly_buf, philly, byid=TRUE)
 philly_sel <- philly[as.vector(philly_buf_intersects),]
 plot (philly, border="#aaaaaa")
 plot (philly_sel, add=T, col="red") 
 plot (philly_buf, add=T, lwd = 2)
-
 ```
 
+# 5. Spatial operations with `sf`
+
+To give you a flavor of how this might be done using the `sf` package we will reproduce here the same example as above.
+
+```{r}
+library(sf)
+philly_sf <- st_read("~/Desktop/RSpatialDataOps/Philly/", quiet = T)
+
+# sf points
+philly_ctr_sf <- st_sfc(st_point(c(-75.16522, 39.95258)), crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+
+# reproject
+philly_ctr_aea_sf <- st_transform(philly_ctr_sf, st_crs(philly_sf))
+
+# buffer
+philly_buf_sf <- st_buffer(philly_ctr_aea_sf, 2000)
+
+# intersection
+philly_buf_intersects <- st_intersects(philly_buf_sf, philly_sf)
+
+# subsetting
+philly_sel_sf <- philly_sf[unlist(philly_buf_intersects),]
+
+# plot
+plot(st_geometry(philly_sf), border="#aaaaaa")
+plot(st_geometry(philly_sel_sf), add=T, col="red")
+plot(st_geometry(philly_buf_sf), add=T, lwd = 2)
+
+```
