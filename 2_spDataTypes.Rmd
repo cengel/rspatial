@@ -1,8 +1,8 @@
 ---
 title: "Introduction to Spatial Data Types in R"
-author: "claudia a engel"
-date: "Last updated: `r format(Sys.time(), '%B %d, %Y')`"
-output: 
+author: "claudia engel"
+date: 'Last updated: `r format(Sys.time(), "%B %d, %Y")`'
+output:
   html_notebook:
     code_folding: hide
     toc: yes
@@ -21,15 +21,18 @@ knitr::opts_chunk$set(echo=TRUE,
 ## libraries needed for R code examples
 library(sp)
 library(raster)
+library(sf)
 ```
 
 ***
 
 For this module you need to have the [`sp`](https://CRAN.R-project.org/package=sp) and [`raster`](https://CRAN.R-project.org/package=raster) libraries installed and loaded. [Note that the latest `raster`(2.5-8) depends on `sp` 1.2-0 or later, so make sure that your versions align.]
 
+Data file needed is [RSpatialDataTypes.zip](https://www.dropbox.com/s/g5p8b1xi2k5lydw/RSpatialDataTypes.zip?dl=1). 
+
 __Mac users__ 
 
-Since there is now a Mac binary package for `rgdal` [available on CRAN](https://CRAN.R-project.org/package=rgdal) installing `sp` with the default settings will also install that `rgdal` as one of its dependencies. It includes a built-in basic GDAL that lacks some of the extra GDAL formats can handle. There is an alternative `rgdal` package distributed by kyngchaos that you can use instead. Formats **not** included in the CRAN distribution but included in the kyngchaos distribution are currently: DODS, Geomedia, Interlis 1, Interlis 2, LIBKML, MSSQLSpatial, NAS, ODBC, OGDI, PGeo, PostgreSQL, OSI, Walk, XLS. (You mostly might care about having the PostgreSQL driver at some point.)
+Since there is now a Mac binary package for `rgdal` [available on CRAN](https://CRAN.R-project.org/package=rgdal) installing `sp` with the default settings will also install that `rgdal` as one of its dependencies. It includes a built-in basic GDAL that lacks some of the extra formats GDAL can handle. There is an alternative `rgdal` package distributed by kyngchaos that you can use instead. Formats **not** included in the CRAN distribution but included in the kyngchaos distribution are currently: DODS, Geomedia, Interlis 1, Interlis 2, LIBKML, MSSQLSpatial, NAS, ODBC, OGDI, PGeo, PostgreSQL, OSI, Walk, XLS. (You mostly might care about having the PostgreSQL/Pgeo driver at some point.)
 
 
 If you __DON'T__ care, simply say:
@@ -40,7 +43,7 @@ If you __DO__ care, follow the instructions below.
 
 #. Install the raster library: 
 
-        install.packages("raster"))
+        install.packages("raster")
 
 #. Don't install `sp` with dependencies: 
 
@@ -95,7 +98,7 @@ lines(c(8, 9), c(14, 12))
 
 #### Exercise 1
 
-Discuss with your neighbor: What parameters do we need to specify in order to describe spatial vector objects?
+Discuss with your neighbor: What parameters define points, lines, polygons in geographic space?
 
 ```{r}
 # * lat/lon coordinates
@@ -108,18 +111,18 @@ Discuss with your neighbor: What parameters do we need to specify in order to de
 
 ***
 
-In R the `sp` package provides classes and methods for spatial data types[^1].
+The library that provides classes and methods for spatial data types in R is called `sp` [^1].
 
-[^1]: From R Bivand (2011) [Introduction to representing spatial objects in R](http://geostat-course.org/system/files/monday_slides.pdf)
+[^1]: R Bivand (2011) [Introduction to representing spatial objects in R](http://geostat-course.org/system/files/monday_slides.pdf)
 
-Development of the `sp` package began in the early 2000s in an attempt to standardize how spatial data would be treated in R and to allow for better interoperability between different analysis packages that use spatial data. The package provides classes and methods to create _points_, _lines_, _polygons_, and _grids_ and to operate on them. It is one of the most important packages that you will need to use if dealing with spatial data in R. Many of the spatial analysis packages now use the spatial data types that are implemented in `sp` i.e. they "depend" on the `sp` package.
+Development of the `sp` package began in the early 2000s in an attempt to standardize how spatial data would be treated in R and to allow for better interoperability between different analysis packages that use spatial data. The package provides classes and methods to create _points_, _lines_, _polygons_, and _grids_ and to operate on them. It is one of the most important packages that you will need to use if dealing with spatial data in R. About 350 of the spatial analysis packages now use the spatial data types that are implemented in `sp` i.e. they "depend" on the `sp` package and many more are indirectly dependent.
 
-You should perhaps also be aware that a recently released R package [`sf`](https://cran.r-project.org/package=sf
-) which [approaches the modeling of spatial objects in a very different way](https://edzer.github.io/sfr/articles/sfr.html).
+NOTE: There is a new R package you should be aware of, called [`sf`](https://cran.r-project.org/package=sf
+) which [approaches the modeling of spatial objects in a very different way](https://edzer.github.io/sfr/articles/sfr.html). More on this later.
 
 In `sp` spatial objects are conceptualized in the following way[^2]:
 
-[^2]: Note that this is not the only way spatial objects are conceptualized in R. Other spatial packages may use their own class definitions for spatial data (for example `spatstat`). Usuallly you can find functions that convert `sp` objects to and from these formats.
+[^2]: Note that this is not the only way spatial objects are conceptualized in R. Other spatial packages may use their own class definitions for spatial data (for example `spatstat`, or the new `sf` package). Usuallly you can find functions that convert `sp` objects to and from these formats.
 
 The foundational structure for *any* spatial object in `sp` is the `Spatial` class. It has two slots (new-style class objects in R have pre-defined components called slots):
 
@@ -127,9 +130,9 @@ The foundational structure for *any* spatial object in `sp` is the `Spatial` cla
       
 * a __CRS class object__ to define the Coordinate Reference System 
 
-## 2. Creating a spatial object
+## 2. Creating a spatial object: `sp`
 
-In order to create a spatial object manually the basic steps are:  
+In order to create a spatial object manually the basic steps would be:  
 
 > I. Create a bunch of points, lines, or polygons (details below)
  
@@ -174,7 +177,7 @@ function | and what it does
 `CRS()` | creates an object of class of coordinate reference system arguments
 `spplot()` | plots a separate map of all the attributes unless specified otherwise
 `coordinates()` | set or retrieve the spatial coordinates. For spatial polygons it returns the centroids.
-`over(a, b)` | used for example to retrieve the polygon or grid indexes on a set of points - we'll come back to that one later
+`over(a, b)` | used for example to retrieve the polygon or grid indexes on a set of points
 `spsample()` | sampling of spatial points within the spatial extent of objects
 
 ### Creating a spatial object from scratch
@@ -183,6 +186,16 @@ function | and what it does
 #### Exercise 2
 
 In this example we will manually generate a point vector object and plot it.
+
+We will follow the steps outlined above:
+
+1. Create a matrix of random numbers with two columns and as many rows as you like. 2. Use the appropriate command to convert you matrix into a `SpatialPoints` object.
+3. Try some of the Spatial methods listed above
+3. Create a dataframe with the same number of rows as your matrix and two columns that you can assign arbitrary attributes.
+4. Use the appropriate command to turn your `SpatialPoints` object into a `SpatialPointsDataframe`  
+5. Try to subset the SpatialPointsDataframe, the way you are used to from regular data frames.
+
+> Try before you peek! 
 
 ```{r}
 xy <- matrix(runif(20), ncol=2) # a matrix with some arbitrary points as coordinates..
@@ -260,12 +273,12 @@ bubble(ph_df, "price")
 
 Note that the Spatial object you just created __does not__ have a projection defined. It is ok to plot, but be aware that for any meaningful spatial operation you will need to define a projection. 
 
-9. This is how it's done:
+This is how it's done:
 
 ```{r eval=FALSE}
 is.projected(ph_df) # see if a projection is defined  
 proj4string(ph_df) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") # this is WGS84
-is.projected(ph_df) # voila
+is.projected(ph_df) # voila! hm. wait a minute..
 ```
 
 ***
@@ -382,7 +395,7 @@ myShape <- readOGR("myShapefileDir", "myShapefile")
 Now let's do this.
 
 ***
-####Exercise 4
+#### Exercise 4
 
 1. Load the `rgdal` package.
 2. Determine the location of the folder enclosing the `PhillyTotalPopHHinc` shapefile.
@@ -415,7 +428,70 @@ plot(philly); plot(philly_rich, add=T, col="red")
 GDAL supports over 200 [raster formats](http://www.gdal.org/formats_list.html) and [vector formats](http://www.gdal.org/ogr_formats.html). Use `ogrDrivers()` and `gdalDrivers()` (without arguments) to find out which formats your `rgdal` install can handle.
 
 
-### Raster data
+## 4. Simple features: `sf`
+
+Much work has been going on to develop an alternative to `sp`. The [development effort, led by Edzer Pebesma](https://github.com/edzer/sfr/) resulted in a new package: `sf`, for Simple Features. The first version was released Nov 2016.
+
+The reason for this development was another emerging, and increasingly popular standard for implementing spatial data, as ["Simple features""](https://en.wikipedia.org/wiki/Simple_Features). A feature geometry is called simple when it consists of points connected by straight line pieces, and does not intersect itself. 
+
+If you work with PostGis or GeoJSON you may have come across the [WKT (well-known text)](https://en.wikipedia.org/wiki/Well-known_text) format, for example like these: 
+
+    POINT (30 10)
+    LINESTRING (30 10, 10 30, 40 40)
+    POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))
+
+`sf` implements those standards natively in R. Data are structured and conceptualized very differently from the `sp` approach. They are basically `data.frame` objects that have a geometry list-column. 
+
+In order to understand this, let's just do it. 
+
+***
+
+#### Exercise 5
+
+```{r eval=F}
+# 1. Install and load `sf`:
+# (The MAC binary version currently available on CRAN still lags behind the windows version, but will work fine for this.)
+install.packages("sf")
+library(sf)
+
+# 2. Create the sf object.  
+# You can either convert from the `sp` object you read in earlier
+philly_sf <- st_as_sf(philly)
+
+# Or you can read it in like this (note the difference in speed?)
+philly_sf <- st_read("~/Desktop/RSpatialDataTypes/Philly/")
+
+# 3. Now let's take a look of what we got.
+names(philly_sf)
+names(philly)
+
+str(philly_sf)
+
+class(philly_sf$geometry)    
+st_geometry(philly_sf)  # use this method to retreive geometry!
+st_geometry(philly_sf)[[1]]
+
+# careful with this:
+plot(philly_sf$medHHinc)
+plot(philly_sf["medHHinc"])
+
+class(philly_sf$medHHinc)
+class(philly_sf["medHHinc"])
+```
+
+Here are some of the other highlights of `sf` you might be interested in:
+
+- provides **fast** I/O, particularly relevant for large files 
+
+    (I did a quick microbenchmarking: st_read() took 23.1749 milliseconds and readOGR() took
+462.1470 milliseconds for the philly shapefile.)
+                                                                              
+- directly reads from and writes to spatial **databases** such as PostGIS
+
+- stay tuned for a new `ggplot` release that will be able to read the `sf` format directly
+
+
+## 5. Raster data
 
 Raster files, as you probably know, have a much more compact data structure than vectors. Because of their regular structure the coordinates do not need to be recorded for each pixel or cell in the rectangular extent. A raster is defined by:
 
@@ -495,7 +571,7 @@ The respective function in `raster` package is called `raster()`.
 
 ***
 
-#### Exercise 5
+#### Exercise 6
 
 1. Load the `raster` library
 2. Read in the DEM using the `raster()` function
