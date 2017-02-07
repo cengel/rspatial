@@ -208,7 +208,7 @@ In R we will use the `aggregate()` function from the `sp` package[^3]. Here are 
 
 ```{r eval=FALSE}
 ph_homicides_agg <- aggregate(x = ph_homicides_aea, by = philly, FUN = length)
-
+# make sure you understand this error message:
 aggregate(x = ph_homicides, by = philly, FUN = length)  
 
 class(ph_homicides_agg)
