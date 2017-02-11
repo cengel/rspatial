@@ -131,14 +131,18 @@ We will start by using the `geocode()` command from the `ggmap` library.
 
 1. Install (if you haven't) and load the `ggmap` library.
 
-2. Using the `geocode` command, how would you search for location of the city of Santiago.
+2. Using the `geocode` command, how would you search for location of the city of Toledo
 
 ```{r eval=FALSE}
 library(ggmap)
-geocode("Santiago")
+geocode("Toledo")
 ```
 
 3. How does your result compare to what you got from when you did the query through the web browser? Check out the `output=` option of the command, what does that do?
+
+```{r eval=FALSE}
+geocode("Toledo", ouput = "all")
+```
 
 4. Now geocode this address: `"380 New York St, Redlands, CA"`. Compare the results you get with the Google geocoder versus the Data Science Toolkit geocoder.
 
