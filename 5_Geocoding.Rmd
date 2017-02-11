@@ -72,10 +72,20 @@ There are a number of ways, for example:
 
 #. What just happened?
 
-#. Now write the URL to return the location of Santiago -- what do we get here? 
+#. Now write the URL to return the location of Toledo -- what do we get here? 
 
-#. Now we want **_only_** the city in Spain. Extra bonus: Request the results in JSON format.  
-If you are interested, here is some documentation: https://developers.google.com/maps/documentation/geocoding/
+#. Now we want the city in Spain. Extra bonus: Request the results in JSON format. 
+
+Here is some documentation: https://developers.google.com/maps/documentation/geocoding/
+
+```{r eval=F}
+http://maps.googleapis.com/maps/api/geocode/xml?address=Toledo
+
+http://maps.googleapis.com/maps/api/geocode/json?address=Toledo&region=ES
+
+# this also works:
+http://maps.googleapis.com/maps/api/geocode/json?address=Toledo,Spain
+```
 
 What have we learned?
 
