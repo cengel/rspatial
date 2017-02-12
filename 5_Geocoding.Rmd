@@ -181,7 +181,7 @@ dogs <- read.csv("https://data.austintexas.gov/api/views/ykw4-j3aj/rows.csv?acce
 
 ```{r eval=FALSE}
 # concatenate the address
-dogs_adr <- paste(dogs$Address, "Austin,TX ", dogs$Zip.Code)
+dogs_adr <- paste(dogs$Address, "Austin,TX", dogs$Zip.Code)
 
 # geocode - check for warnings
 dogs_coords <- geocode(dogs_adr)
@@ -232,8 +232,12 @@ Something like this:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, comment=NA}
 dogs <- read.csv("https://data.austintexas.gov/api/views/ykw4-j3aj/rows.csv?accessType=DOWNLOAD")
-dogs_adr <- paste0(dogs$Address, " Austin,TX ", dogs$Zip.Code)
+#dogs_adr <- paste(dogs$Address, "Austin,TX", dogs$Zip.Code)
+dogs_adr <- paste(dogs$Address, "Austin,TX", dogs$Zip.Code)
 dogs_coords <- geocode(dogs_adr)
+dogs <- data.frame(cbind(dogs, dogs_coords))
+dogs <- dogs[complete.cases(dogs),] # remove NA geocoding results 
+
 leaflet(dogs) %>%  
   addTiles() %>% 
   addCircleMarkers(dogs$lon, dogs$lat, popup=dogs$Description.of.Dog) 
@@ -289,7 +293,7 @@ write.csv(dogs2, "dangerous_dogs2.csv", row.names=F)
 
 - [`nominatim`](https://github.com/hrbrmstr/nominatim) (not on CRAN) connects to [OSM Nominatim](http://nominatim.openstreetmap.org)
 
-- [`opencage`](https://CRAN.R-project.org/package=taRifxe=opencage) connects to [OpenCage geocoder](https://geocoder.opencagedata.com/) 
+- [`opencage`](https://CRAN.R-project.org/package=opencage) connects to [OpenCage geocoder](https://geocoder.opencagedata.com/) 
 
 - [threewords](https://CRAN.R-project.org/package=threewords) connects to the [What3Words](http://what3words.com/) 
 
