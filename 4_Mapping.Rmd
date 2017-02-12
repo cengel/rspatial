@@ -47,7 +47,7 @@ R comes with a basic `plot` command, which can also be used for simple map viewi
 
 # 1. Choropleth mapping with `spplot` 
 
-`sp` comes with a more convenient plot command `spplot()`, which takes `Spatial*` objects to plot. `spplot()` is one of the older functions to plot geographic objects.
+`sp` comes with a plot command `spplot()`, which takes `Spatial*` objects to plot. `spplot()` is one of the older functions to plot geographic objects.
 
 ***
 ### Exercise 1
@@ -119,7 +119,9 @@ spplot(philly,"HOMIC_R", col.regions = pal, cuts = 4)
 
 9. Looks better already. But we still have this one area standing out with an extremely high homicide rate, which makes a large part of the map unreadable. So let's change the class intervals to quantiles. We will use `classIntervals` from the `classInt` library, something like:
 
-        breaks_qt <- classIntervals(vector_of_values_here, n = how_many_classes_?, style = "quantile" [can be omitted -- it is the default])
+        breaks_qt <- classIntervals(vector_of_values, 
+                                    n = how_many_classes, 
+                                    style = "quantile" [can be omitted -- the default])
 
     This returns an object of type `classIntervals`. Find out its structure. How would you access the break values?
 
@@ -157,7 +159,7 @@ spplot(philly, "HOMIC_R", col.regions=pal, at=br,  main = "Philadelphia homicide
 
 ```{r eval=FALSE}
 philly$HOMIC_R_bracket <- cut(philly$HOMIC_R, br)
-philly$HOMIC_R_bracket
+head(philly$HOMIC_R_bracket)
 class(philly$HOMIC_R_bracket)
 spplot(philly, "HOMIC_R_bracket", col.regions=pal, main = "Philadelphia homicide rate per 100,000")
 ```
@@ -235,7 +237,7 @@ title("Philadelphia homicide rate per 100,000") # add title.
 
 The `ggplot()` syntax is different from the previous as a plot is built up by adding components with a `+`. You can start with a layer showing the raw data then add layers of annotations and statistical summaries. This allows to easily superimpose either different visualizations of one dataset (e.g. a scatterplot and a fitted line) or different datasets (like different layers of the same geographical area)[^4]. 
 
-For an introduction to `ggplot` check out [this excellent book by the package creator](http://link.springer.com/book/10.1007%2F978-3-319-24277-4).
+For an introduction to `ggplot` check out [this excellent book by the package creator](http://link.springer.com/book/10.1007%2F978-3-319-24277-4) or [this](http://ggplot2.tidyverse.org/) for more pointers.
 
 
 [^4]: See Wilkinson L (2005): "The grammar of graphics". Statistics and computing, 2nd ed. Springer, New York. 
@@ -267,13 +269,14 @@ So if we wanted to map polygons, like census tract boundaries, we would use long
 
     `broom` is a general purpose package which provides functions to turn the messy output of built-in functions in R, such as lm, nls, or t.test, into [tidy data](https://www.jstatsoft.org/article/view/v059i10) frames. We use the `tidy()` command for the conversion[^5].
 
-[^5]: You may still see many examples that use `ggplot2::fortify`. Be aware that that may be deprecated in the future.
+[^5]: You may still see examples that use `ggplot2::fortify`. Be aware that this may be deprecated in the future.
 
 2. Load the `broom` library, and use `tidy` for the conversion. Create a new object, `philly_df` for the output. What columns and values do you get? 
 
 ```{r eval=FALSE}
 library(broom)
 philly_df <- tidy(philly)
+head(philly_df)
 ```
 
 3. Ha. `tidy()` will make us loose the attributes that we want to map, so we have to take care of that. We extract the polygon IDs from `philly` and add them to its dataframe as a column - I named it `polyID`. This requires a bit of understanding of the internal structure of `philly`. You can take a peek with `str(philly, max.level = 2)`. 
@@ -284,8 +287,8 @@ philly_df <- tidy(philly)
 
 ```{r eval=FALSE}
 philly$polyID <- sapply(slot(philly, "polygons"), function(x) slot(x, "ID"))
-
 philly_df <- merge(philly_df, philly, by.x = "id", by.y="polyID")
+head(philly_df)
 ```
 
 4. OK. All set to plot. 
@@ -335,11 +338,11 @@ So let's overlay the map from above on a google satellite basemap.
 ***
 ### Exercise 3
 
-1. First we use the `get_map()` command to pull down the basemap. We need to tell it the location or the boundaries of the map, the zoom level, and what kind of map service we like (default is Google terrain). That will actually download the tile. `get_map()` returns a ggmap object, name it `ph_basemap`.
+1. First we use the `get_map()` command from `ggmap` to pull down the basemap. We need to tell it the location or the boundaries of the map, the zoom level, and what kind of map service we like (default is Google terrain). It will actually download the tile. `get_map()` returns a ggmap object, name it `ph_basemap`.
 
     In order to view the map we then use `ggmap(ph_basemap)`.
 
-    Look up the syntax with `?get_map()`, go back and forth between `get_map(..)` and `ggmap(ph_basemap)` to find the correct parameters for our example.
+    Look up the syntax of `?get_map()`, go back and forth between `get_map(..)` and `ggmap(ph_basemap)` to find the correct parameters for our example.
 
 
 ```{r eval=FALSE}
@@ -369,7 +372,7 @@ ggmap(ph_basemap) +
   geom_polygon(data = philly_df, aes(x=long, lat, group = group, fill = cut_number(HOMIC_R, 5))) + 
   scale_fill_brewer("Homicide Rate", palette = "OrRd") + 
   ggtitle("Philadelphia homicide rate per 100,000") # +
-    #theme(line = element_blank(),  # don't need this here as ggmap already takes care of most of it
+    #theme(line = element_blank(),  # don't need this here as ggmap takes care of it
     #    axis.text=element_blank(),
     #    axis.title=element_blank()
     #   panel.background = element_blank()) + 
@@ -485,12 +488,12 @@ Let's build up the map step by step.
 ***
 ### Exercise 5
 
-1. Load the `leaflet` library. Use the `leaflet()` function with the Spatial*Object and pipe it to  addPolygons() function. Just to show us a the default map of Philly.
+1. Load the `leaflet` library. Use the `leaflet()` function with the Spatial*Object and pipe it to addPolygons() function. Just to show us a default map of Philly.
 
         leaflet(name_of_our_spatialPoly) %>%
           addPolygons()
   
-    Is this what you did?
+    Is this what you did?:
     
 ```{r eval=FALSE}
 library(leaflet) 
@@ -585,7 +588,7 @@ leaflet(philly_WGS84) %>%
             title = 'Philadelphia homicide rate per 100,000')
 ```
 
-7. That's more like it. Finally, I have added for you a control to switch to anotehr basemap and turn the philly polygon off and on. Take a look at the changes in the code below.
+7. That's more like it. Finally, I have added for you a control to switch to another basemap and turn the philly polygon off and on. Take a look at the changes in the code below.
 
 ```{r eval=FALSE}
 leaflet(philly_WGS84) %>%
