@@ -252,27 +252,27 @@ You can find more details as of how to use this service from R [here](https://gi
 
 
 ***
-### Exercise 5
+### Exercise 4
 
-#. Using the provided function `geocodeSL` we can geocode the same adress table as above in a very similar fashion. Give that a try.
+#. Using the provided function `geocodeSL` we can geocode the adress table from above using the ArcGIS geocoding service:
 
 ```{r eval=FALSE}
 library(readr)
 library(rgdal)
 
-###### set your token ######
+# set your token
 myToken <- "XXXXXXXX"
 
-###### source the function ######
-source("https://www.dropbox.com/s/k520ukglnrhzyj3/geocodeSL.R?dl=1")
+# source the function
+source("https://raw.githubusercontent.com/cengel/ArcGIS_geocoding/master/SUL_gcFunctions.R")
 
-###### geocode ######
+# geocode
 dogs_coords2 <- do.call("rbind", lapply(dogs_adr, function(x) geocodeSL(x, myToken)))
 
-##### add attibutes back  ######
+# add attibutes back
 dogs2 <- cbind(dogs, dogs_coords2)
 
-###### write out a CSV ######
+# write out a CSV
 write.csv(dogs2, "dangerous_dogs2.csv", row.names=F)
 
 ```
@@ -317,7 +317,7 @@ We will use the city names, geocode their locations and plot the cities by popul
 You should be able to run the code below as is. It might take a little while.
 
 ***
-### Exercise 6
+### Exercise 5
 ```{r message=FALSE, warning=FALSE, comment=NA}
 library(XML)
 library(ggmap)
