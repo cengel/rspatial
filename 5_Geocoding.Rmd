@@ -17,6 +17,7 @@ library(sp)
 library(rgdal)
 library(httr)
 library(jsonlite)
+library(leaflet)
 ```
 
 Libraries needed for this section are:
@@ -162,7 +163,7 @@ Now let's write an R script to process an entire list of adresses for geocoding 
 
     Let's use the addresses of declared dangerous dogs in Austin, TX, courtesy of the [city of Austin's open data portal](https://data.austintexas.gov). 
 
-    The link to the CSV file of the data is this one:
+    The direct link to the CSV file of the data is this one:
 
     https://data.austintexas.gov/api/views/ykw4-j3aj/rows.csv?accessType=DOWNLOAD
 
@@ -174,12 +175,15 @@ dogs <- read.csv("https://data.austintexas.gov/api/views/ykw4-j3aj/rows.csv?acce
 
 2. Send each address to the geocoding service. 
     
-    The nice thing is that `geocode()` can take a vector of adresses. So all we have to do is find out where the addresses are in our `dogs` data frame and then submit them to the `geocode()` function. ANd of course, catch the results in a variable.
+    The nice thing is that `geocode()` can take a vector of adresses. So all we have to do is find out where the addresses are in our `dogs` data frame and then submit them to the `geocode()` function. And of course, catch the results in a variable.
 
     (For the purpose of this exercise we will overlook the fact that the coordinates already come with the table.)
 
 ```{r eval=FALSE}
-dogs_adr <- paste0(dogs$Address, " Austin,TX ", dogs$Zip.Code)
+# concatenate the address
+dogs_adr <- paste(dogs$Address, "Austin,TX ", dogs$Zip.Code)
+
+# geocode - check for warnings
 dogs_coords <- geocode(dogs_adr)
 ```
 
@@ -193,16 +197,28 @@ dogs <- data.frame(cbind(dogs, dogs_coords))
 
 4. Save the output as shapefile. 
     
-    Saving out as csv is pretty easy with `write.table()`. To save the data frame as a shapefile, we convert the dataframe to a `Spatial*Dataframe` first, assign a projection, and then save with `writeOGR()`. Remember that you will need both the `sp` and the `rgdal` libraries for this.
+    Saving the coordinates out as csv is pretty easy with `write.table()`. To save the data frame as a shapefile, we convert the dataframe to a `Spatial*Dataframe` first, assign a projection, and then save with `writeOGR()`. Remember that you will need both the `sp` and the `rgdal` libraries for this. 
+    
+    Optional: save the shapefile using `sf`.
     
 ```{r eval=FALSE}
 library(sp)
 library(rgdal)
 
+dogs <- dogs[complete.cases(dogs),] # remove NA geocoding results 
 coordinates(dogs) <- c("lon", "lat") 
 proj4string(dogs) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
 writeOGR(dogs, ".", "dangerous_dogs", driver="ESRI Shapefile")
+
+
+# If we were to use the `sf` package we would do:
+    
+library(sf)
+dogs_sf <- st_as_sf(dogs, c("lon", "lat"), crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+st_write(dogs_sf, "dangerous_dogs.shp")
+
 ```
+    
 
 5. Now let's use `get_map()` and `ggmap()` to plot the dots over a basemap.
 
