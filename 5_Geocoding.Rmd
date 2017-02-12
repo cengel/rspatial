@@ -220,11 +220,12 @@ st_write(dogs_sf, "dangerous_dogs.shp")
 ```
     
 
-5. Now let's use `get_map()` and `ggmap()` to plot the dots over a basemap.
+5. Now let's use `leaflet()` to plot the dots over a basemap.
 
 ```{r eval=FALSE}
-aus <- get_map("Austin, TX")
-ggmap(aus) + geom_point(dogs_coords, aes(lon, lat))
+leaflet(dogs) %>%  
+  addTiles() %>% 
+  addCircleMarkers(dogs$lon, dogs$lat, popup=dogs$Description.of.Dog) 
 ```
 
 Something like this:
@@ -233,8 +234,9 @@ Something like this:
 dogs <- read.csv("https://data.austintexas.gov/api/views/ykw4-j3aj/rows.csv?accessType=DOWNLOAD")
 dogs_adr <- paste0(dogs$Address, " Austin,TX ", dogs$Zip.Code)
 dogs_coords <- geocode(dogs_adr)
-aus <- get_map("Austin, TX")
-ggmap(aus) + geom_point(data = dogs_coords, aes(lon, lat))
+leaflet(dogs) %>%  
+  addTiles() %>% 
+  addCircleMarkers(dogs$lon, dogs$lat, popup=dogs$Description.of.Dog) 
 ```
 
 
@@ -246,139 +248,8 @@ Thanks to our fabulous geospatial manager [Stace Maples](https://library.stanfor
 
 The services available here cover the US only. The good news here are that there are no limits as of how many addresses you can throw at this server. However, **you should let Stace know if you are intending to run a major job!**
 
-## Constructing the request URL
+You can find more details as of how to use this service from R [here](https://github.com/cengel/ArcGIS_geocoding).
 
-To use this service :
-
-- You need to be on the Stanford network or use [VPN](https://uit.stanford.edu/service/vpn/). 
-- You need to authenticate with WebAuth.
-- You need to get a token from here http://locator.stanford.edu/arcgis/tokens/
-    
-    Username: add `WIN\` before your SunetID, for example: `WIN\cengel`  
-    Client: RequestIP  
-    HTTP referer: [leave blank]  
-    IP:	[leave blank]  
-    Expiration: (you decide)  
-    Format: HTML  
-
-    (The token is tied to the IP address of the machine that requests the service, so if you use a laptop and move, say from your home wireless over VPN to your lab on Campus, the same token will not work.)
-
-
-Now let's put together a URL that will determine the the location for `380 New York St,  Redlands, CA`.[^3]
-
-Here is what we need:
-
-- The request URL 
-    `http://locator.stanford.edu/arcgis/rest/services/geocode/Composite_NorthAmerica/GeocodeServer/geocodeAddresses`
-    
-- The request parameters, required are `addresses=`, `token=`, and `format=` (for output).
-
-ArcGIS requires also the input addresses also to be in JSON format, which means they need to look like this: 
-
-```
-  addresses=
-  {
-    "records": [
-      {
-        "attributes": {
-          "OBJECTID": 1,
-          "SingleLine": "380 New York St., Redlands, CA, 92373"
-        }
-      }
-    ]
-  }
-```
-
-
-We attach all the request parameters to the request URL after a `?`
-
-That makes for this very convoluted URL:
-
-    http://locator.stanford.edu/arcgis/rest/services/geocode/Composite_NorthAmerica/GeocodeServer/geocodeAddresses?addresses={"records":[{"attributes":{"OBJECTID":1,"SingleLine":"380 New York St., Redlands, CA"}}]}&token=<YOUR TOKEN>&f=pjson
-
-What a mess.
-
-[^3]:I found [this](https://developers.arcgis.com/rest/geocode/api-reference/geocoding-geocode-addresses.htm) helpful. Even though it is about ESRI's World Geocoder it is very applicable for other ESRI geocoders.
-
-ArcGIS takes addresses in Single and Mutiline mode. The addresses in your table can be stored in a single field (as used above) or in multiple fields, one for each address component (Street, City, etc). Batch geocoding performance is better when the address parts are stored in separate fields (multiline). However, if there is an error in your batch, all the addresses in that batch that already have been geocoded will be dropped.
-
-***
-### Exercise 4
-
-#. Request a token.
-#. Copy and paste the URL from above, replace the place holder with your token and then copy in a browser.
-#. Try to understand the result.
-
-***
-
-## Scripting
-
-Now let's run the same adresses from above with the ArcGIS geocoder.
-
-Here, again are our steps.
-
-1. Load address data.  
-Like above. Check.
-
-2. Send each address to the geocoding service.  
-We don't have a convenient function to do this, so we have to write our own.
-
-3. Process results.  
-We will do this in the same function. Here it is:
-
-```{r eval=FALSE}
-## begin geocode function 
-# takes token and address as single line one at a time (SingleLine API)
-# needs more work for errors: e.g. what if no results are returned? etc etc
-geocodeSL <- function (address, token){
-  # load the libraries
-  require(httr)
-  require(jsonlite)
-  
-  # the server URL
-  gserver <- "http://locator.stanford.edu/arcgis/rest/services/geocode/Composite_NorthAmerica/GeocodeServer/"
-  
-  # template for SingleLine format
-  pref <- "{'records':[{'attributes':{'OBJECTID':1,'SingleLine':'"
-  suff <- "'}}]}"
-  
-  # make a valid URL
-  url <- URLencode(paste0(gserver, "geocodeAddresses?addresses=", pref, address, suff, "&token=", token, "&f=json"))
-
-  # submit the request
-  rawdata <- GET(url)
-
-  # parse JSON to get the content
-  res <- content(rawdata, "parsed", "application/json")
-  # process the result
-  resdf <- with(res$locations[[1]], {data.frame(lat = attributes$Y,
-                                                lon = attributes$X,
-                                                status = attributes$Status,
-                                                score = attributes$Score,
-                                                side = attributes$Side,
-                                                matchAdr = attributes$Match_addr)})
-  # return as data frame
-  return(resdf)
-}
-## end geocode function
-```
-
-I have uploaded this function [here](https://www.dropbox.com/s/k520ukglnrhzyj3/geocodeSL.R?dl=1), so to use it from within R, you can "source" it like this:
-
-```{r eval=FALSE}
-source("https://www.dropbox.com/s/k520ukglnrhzyj3/geocodeSL.R?dl=1")
-```
-
-This geocoding function unfortunately is not as convenient as the one we used earlier. So we have to loop through our adresses ourselves and save the result to a data frame. Before that you should set `myToken` to the value of your token and make sure that you have the `httr` and `jsonlite` libraries installed.
-
-Once that's taken care of, we can do:
-
-```{r eval=FALSE}
-dogs_coords2 <- do.call("rbind", sapply(dogs_adr, function(x) geocodeSL(x, myToken), simplify = FALSE))
-```
-
-4. Save the output.  
-As in the prior exercise.
 
 ***
 ### Exercise 5
