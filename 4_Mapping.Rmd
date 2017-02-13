@@ -12,6 +12,7 @@ output:
 ```{r setup, include=FALSE}
 ## libraries needed for R code examples
 library(sp)
+library(sf)
 library(rgdal)
 library(classInt)
 library(RColorBrewer)
@@ -29,6 +30,7 @@ Libraries needed for this section are:
 
 * sp
 * rgdal
+* sf
 * classInt
 * RColorBrewer
 * broom
@@ -226,6 +228,32 @@ title("Philadelphia homicide rate per 100,000") # add title.
 ```
 
 
+**Plotting simple features (`sf`)**:
+
+The `sf` package extends the base `plot` command, so it can be used on `sf` objects. If used without any arguments it will plot all the attributes, like `spplot` does.
+
+```{r eval=FALSE}
+library(sf)
+philly_sf <-  st_read("~/Desktop/Philly3/Philly3.shp")
+plot(philly_sf)
+```
+
+To plot a single attribute we need to provide an object of class `sf`, like so:
+
+```{r eval=FALSE}
+plot(philly_sf$HOMIC_R) # no-no
+plot(philly_sf["HOMIC_R"])
+```
+
+If we wanted to add a legend and a title we would recur to basic plot commands to do this.
+
+```{r eval=FALSE}
+make.colors <- colorRampPalette(pal)
+plot(philly_sf["HOMIC_R"], main="Philadelphia homicide rate per 100,000", col=cut(philly_sf$HOMIC_R, br))
+legend(1760000, 471000, legend=paste("<", round(br[-1])), fill=pal)                                                   
+```
+
+   
 
 [^3]: For the correction of breaks after using classIntervals with spplot/levelplot see here http://r.789695.n4.nabble.com/SpatialPolygon-with-the-max-value-gets-no-color-assigned-in-spplot-function-when-using-quot-at-quot-r-td4654672.html
 
@@ -237,7 +265,7 @@ title("Philadelphia homicide rate per 100,000") # add title.
 
 The `ggplot()` syntax is different from the previous as a plot is built up by adding components with a `+`. You can start with a layer showing the raw data then add layers of annotations and statistical summaries. This allows to easily superimpose either different visualizations of one dataset (e.g. a scatterplot and a fitted line) or different datasets (like different layers of the same geographical area)[^4]. 
 
-For an introduction to `ggplot` check out [this excellent book by the package creator](http://link.springer.com/book/10.1007%2F978-3-319-24277-4) or [this](http://ggplot2.tidyverse.org/) for more pointers.
+For an introduction to `ggplot` check out [this book by the package creator](http://link.springer.com/book/10.1007%2F978-3-319-24277-4) or [this](http://ggplot2.tidyverse.org/) for more pointers.
 
 
 [^4]: See Wilkinson L (2005): "The grammar of graphics". Statistics and computing, 2nd ed. Springer, New York. 
@@ -327,6 +355,10 @@ ggplot() + # initialize ggplot
         panel.background = element_blank()) +
   coord_equal()
 ```
+
+**`ggplot` will soon be able to plot `sf` objects directly.** Something like:
+
+    ggplot() + geom_sf(..some_args..)
 
 
 # 3. Adding basemaps with `ggmap`
@@ -441,12 +473,7 @@ Be aware that the `ggmap` library also includes functions for distance calculati
 
 ```{r eval=FALSE}
 library(tmap)
-# Apparently need to read shapefile in again using read_shape from tmap package, 
-# otherwise my RStudio blows up. Not clear why, because read_shape also 
-# only calls readOGR. Actually, it does some reprojecting! >>> CHECK THIS!! <<<
-philly2 <- read_shape("/Users/cengel/Desktop/Philly3/Philly3.shp") 
-
-tm_shape(philly2) +
+tm_shape(philly) +
   tm_polygons("HOMIC_R", style="quantile", title="Philadelphia \nhomicide rate \nper 100,000")
 ```
 
@@ -461,9 +488,7 @@ last_map()
 Cool huh?
 
 ```{r echo=FALSE, message=FALSE}
-philly2 <- read_shape("/Users/cengel/Desktop/Philly3/Philly3.shp") # need to read shapefile in again using read_shape from tmap package, otherwise my RStudio blows up. Not clear why, because read_shape also only calls readOGR
-
-philly_tmap <- tm_shape(philly2) +
+philly_tmap <- tm_shape(philly) +
   tm_polygons("HOMIC_R", style="quantile", title="Philadelphia \nhomicide rate \nper 100,000")
 tmap_mode("view")
 philly_tmap
@@ -521,8 +546,7 @@ leaflet(philly_WGS84) %>%
 ```{r eval=FALSE}
 pal_fun <- colorQuantile("YlOrRd", NULL, n = 5)
 
-p_popup <- paste0("<strong>Homicide Rate: </strong>", 
-                      philly_WGS84$HOMIC_R)
+p_popup <- paste0("<strong>Homicide Rate: </strong>", philly_WGS84$HOMIC_R)
 
 leaflet(philly_WGS84) %>%
   addPolygons(
