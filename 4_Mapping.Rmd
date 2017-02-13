@@ -245,14 +245,20 @@ plot(philly_sf$HOMIC_R) # no-no
 plot(philly_sf["HOMIC_R"])
 ```
 
-If we wanted to add a legend and a title we would recur to basic plot commands to do this.
+If we wanted to add our own colors, legend and title we would recur to basic plot parameters to do this.
 
 ```{r eval=FALSE}
-make.colors <- colorRampPalette(pal)
-plot(philly_sf["HOMIC_R"], main="Philadelphia homicide rate per 100,000", col=cut(philly_sf$HOMIC_R, br))
-legend(1760000, 471000, legend=paste("<", round(br[-1])), fill=pal)                                                   
+hr_cuts <-  cut(philly_sf$HOMIC_R, br)
+plot(philly_sf["HOMIC_R"], main = "Philadelphia homicide rate per 100,000", col = pal[as.numeric(hr_cuts)])
+legend(1760000, 471000, legend = paste("<", round(br[-1])), fill = pal)                       
 ```
 
+```{r echo=F, message=FALSE}
+philly_sf <-  st_read("~/Desktop/Philly3/Philly3.shp", quiet = T)
+hr_cuts <-  cut(philly_sf$HOMIC_R, br)
+plot(philly_sf["HOMIC_R"], main = "Philadelphia homicide rate per 100,000", col = pal[as.numeric(hr_cuts)])
+legend(1760000, 471000, legend = paste("<", round(br[-1])), fill = pal)                       
+```
    
 
 [^3]: For the correction of breaks after using classIntervals with spplot/levelplot see here http://r.789695.n4.nabble.com/SpatialPolygon-with-the-max-value-gets-no-color-assigned-in-spplot-function-when-using-quot-at-quot-r-td4654672.html
