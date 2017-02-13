@@ -362,9 +362,9 @@ ggplot() + # initialize ggplot
   coord_equal()
 ```
 
-**`ggplot` will soon be able to plot `sf` objects directly.** Something like:
+**`ggplot` will soon be able to plot `sf` objects directly.** This will look like:
 
-    ggplot() + geom_sf(..some_args..)
+    ggplot(philly_sf) + geom_sf(aes(fill=HOMIC_R))
 
 
 # 3. Adding basemaps with `ggmap`
