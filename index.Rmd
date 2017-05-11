@@ -3,7 +3,7 @@ title: "Introduction to Mapping and Spatial Analysis with R"
 output: html_document
 ---
 
-> May 15, 2017  
+> May 22, 2017  
 > Branner Earth Sciences Library - Teaching Corner   
 > Mitchell Earth Sciences Building
 
@@ -13,7 +13,7 @@ These workshop requires a basic familiarity with R. __If you don't know R at all
 
 
 ### Upcoming spatial workshop (please sign up [here](https://goo.gl/forms/6YXrMVAkzKJYnJIz1)):
-_May 15, 2017, 2-4pm:_ 
+_May 22, 2017, 2-4pm:_ 
 
 
 - [Spatial data types in R](2_spDataTypes.nb.html) (requires introductory knowledge about R) 
