@@ -9,7 +9,7 @@ output: html_document
 
 Goal of this workshop is to provide an introduction to R as tool to visualize and analyze spatial data. You will learn about the structure and characteristics of the `sp` and the `sf` spatial objects in R, you will explore some spatial operations, and you will get an overview of how you can plot and map spatial data interactively from R.
 
-These workshop requires a basic familiarity with R. __If you don't know R at all, please take the Introductory R workshop__ (offered [Friday, May 19, 2017](https://events.stanford.edu/events/695/69569/))
+This workshop requires a basic familiarity with R. __If you don't know R at all, please take the Introductory R workshop__ (offered [Friday, May 19, 2017](https://events.stanford.edu/events/695/69569/))
 
 
 ### Upcoming spatial workshop (please sign up [here](https://goo.gl/forms/6YXrMVAkzKJYnJIz1)):
