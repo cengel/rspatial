@@ -37,7 +37,7 @@ In order to combine a `Spatial*Dataframe` with another table (which would be a d
 
 ![Attribute Join of countryData table to worldCountries using unique ID variables](images/attrJoin.png)
 
-The `sp` package has a `merge` command which extends the one from the base package and works with Spatial* objects.
+The `sp` package has a `merge` command which extends the one from the base package and works with Spatial* objects[^4].
 
 [^4]: The `geo_join()` command from the [`tigris` package](https://cran.r-project.org/web/packages/tigris/index.html) also provides a convenient way to merge a data frame to a spatial data frame.
 
@@ -68,13 +68,11 @@ If the names of the ID columns match, we can omit them.
 
 #. Read the `PhillyTotalPopHHinc` shapefile into an object named `philly`.
 
-#. Load the CSV table `PhillyEducAttainment.csv` (in the nhgisPhilly_csv folder) into a dataframe in R and name it `education`.
+#. Load the CSV table `PhillyEducAttainment.csv` (in the nhgisPhilly_csv folder) into a dataframe in R and name it `edu`.
 
 #. Check out the column names of `philly` and and of `edu` to determine which one might contain the unique identifier for the join. Hint: use the `names()` command. (If you are interested in what those data are, you can take a look at the codebook _PhillyEducAttainment_nhgis2010_tract_codebook.txt_)
 
 #. Join the `edu` data frame with `philly` using `merge` as described above. Use the `names()` command to see if the join was successful.
-
-#. Now we could plot one of the variables we just joined - but be aware that a choropleth map of the total number of the female population per census tract with a Bachelor's degree is rather meaningless. 
 
 > Try before you peek!
 
@@ -84,15 +82,14 @@ library(sp)
 
 philly <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc") 
 
-edu <- read.csv("~/Desktop/RSpatialDataOps/nhgisPhilly_csv/PhillyEducAttainment.csv", sep = ";")
+edu <- read.csv("~/Desktop/RSpatialDataOps/nhgisPhilly_csv/PhillyEducAttainment.csv")
 
 names(philly)
 names(edu)
 
-philly <- merge(philly, edu)
+philly_merged <- merge(philly, edu)
 
-names(philly)
-spplot (philly, "JN9E032")
+names(philly_merged)
 ```
 
 ***
@@ -161,22 +158,6 @@ plot(ph_homicides_aea, axes=TRUE)
 ```
 
 ***
-
-In order to reproject a raster, including `SpatialGridDataFrame` objects, you will want to use the `projectRaster()` command from the `raster` package[^2], like for example:
-
-[^2]: This has to do with the fact that a `SpatialGridDataFrame` is based on regularly spaced points. Since reprojection will typically not result in regularly spaced points as after transformation, the output of the reprojection will be coerced into a `SpatialPointsDataFrame`. It is possible but laborious to convert this back into a raster, because some interpolation needs to happen to turn unevently distributed points back into an evenly distributed grid of points. If you need to, you can convert a `SpatialGridDataFrame` to a `raster` use the `raster()` command.
-
-```
-dem.WGS84 <- projectRaster(dem.r, crs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-```
-Here is a comparison of the original and reprojected [DEM](https://www.dropbox.com/s/7e62gkbajfcabh9/DEM_10m.zip?dl=1) downloaded earlier to WGS84.
-
-```{r echo=FALSE, warning=FALSE}
-dem_r <- raster("~/Desktop/RSpatialDataTypes/DEM_10m/bushkill_pa.dem")
-dem_WGS84 <- projectRaster(dem_r, crs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-plot(dem_r); plot(dem_WGS84)
-```
-
 
 # 3. Spatial aggregation: Points in Polygons
 
