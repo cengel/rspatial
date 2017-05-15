@@ -432,7 +432,7 @@ plot(st_geometry(philly_sf_rich), add=T, col="red")
 
 # 4. Raster data
 
-The raster package deserves its own separate workshop, so this is just to acknowledge that you can work with raster data in R as well.
+Dealing with raster data and map algebra deserves its own separate workshop, so this is just to acknowledge that you can work with raster data in R as well.
 
 Raster files, as you probably know, have a much more compact data structure than vectors. Because of their regular structure the coordinates do not need to be recorded for each pixel or cell in the rectangular extent. A raster is defined by:
 
