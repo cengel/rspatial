@@ -28,28 +28,29 @@ philly <- readOGR("/Users/cengel/Desktop/Philly3/", "Philly3", verbose = F)
 ```
 Libraries needed for this section are:
 
-* sp
-* rgdal
-* sf
-* classInt
-* RColorBrewer
-* broom
-* ggplot2
-* ggmap
-* broom
-* tmap
-* leaflet
+* [`sp`](https://cran.r-project.org/package=sp)
+* [`rgdal`](https://cran.r-project.org/package=rgdal)
+* [`sf`](https://cran.r-project.org/package=sf)
+* [`classInt`](https://cran.r-project.org/package=classInt)
+* [`RColorBrewer`](https://cran.r-project.org/package=RColorBrewer)
+* [`broom`](https://cran.r-project.org/package=broom)
+* [`ggplot2`](https://cran.r-project.org/package=ggplot2)
+* [`ggmap`](https://cran.r-project.org/package=ggmap)
+* [`tmap`](https://cran.r-project.org/package=tmap)
+* [`leaflet`](https://cran.r-project.org/package=leaflet)
 
 Data needed:
 
 * Shapefile of Philadelphia census tracts and homicide rates: [Philly3.zip](https://www.dropbox.com/s/pw4611p7x3h5sqa/Philly3.zip?dl=1) 
 
-R comes with a basic `plot` command, which can also be used for simple map viewing. In this workshop we will will look into several alternatives to map spatial data with R. This list is of course not comprehensive, but should give you something to start with. For more packages see the "Visualisation" section of the [CRAN Task View](https://cran.r-project.org/web/views/Spatial.html).
+R comes with a basic `plot` command, which can also be used for simple map viewing. In this workshop we will look into several alternatives to map spatial data with R. This list is of course not comprehensive, but should give you something to start with. For more packages see the "Visualisation" section of the [CRAN Task View](https://cran.r-project.org/web/views/Spatial.html).
 
+Of the packages mentioned  `spplot`  only takes `sp` objects, 
+`tmap` and `leaflet` can also take `sf` objects. The [development version of `ggplot2`](https://github.com/tidyverse/ggplot2/releases) can take `sf` objects, though `ggmap` [seems to still have issues](https://github.com/tidyverse/ggplot2/issues/2130) with `sf`.
 
 # 1. Choropleth mapping with `spplot` 
 
-`sp` comes with a plot command `spplot()`, which takes `Spatial*` objects to plot. `spplot()` is one of the older functions to plot geographic objects.
+`sp` comes with a plot command `spplot()`, which takes `Spatial*` objects to plot. `spplot()` is one of the earliest functions to plot geographic objects.
 
 ***
 ### Exercise 1
@@ -206,7 +207,7 @@ However, as you have seen, this can be quite tedious.
 
 As an alternative you may want to be aware of the [`GISTools`](https://CRAN.R-project.org/package=GISTools) package. It includes functions, like `choropleth()` to draw choropleth that are really just convenience functions that wrap around `spplot()`
 
-Below is the code if you wanted to do a similar map as above with `GISTools`.
+Below is the code if you wanted to do a similar map as above with `GISTools`. Currently `GISTools` cannot understand `sf` objects.
 
 ```{r eval=FALSE}
 library(GISTools)                               # load library
@@ -228,7 +229,7 @@ title("Philadelphia homicide rate per 100,000") # add title.
 ```
 
 
-**Plotting simple features (`sf`)**:
+# 2. Plotting simple features (`sf`) with `plot`
 
 The `sf` package extends the base `plot` command, so it can be used on `sf` objects. If used without any arguments it will plot all the attributes, like `spplot` does.
 
@@ -241,7 +242,7 @@ plot(philly_sf)
 To plot a single attribute we need to provide an object of class `sf`, like so:
 
 ```{r eval=FALSE}
-plot(philly_sf$HOMIC_R) # no-no
+plot(philly_sf$HOMIC_R) # this is a numeric vector
 plot(philly_sf["HOMIC_R"])
 ```
 
@@ -250,14 +251,14 @@ If we wanted to add our own colors, legend and title we would recur to basic plo
 ```{r eval=FALSE}
 hr_cuts <-  cut(philly_sf$HOMIC_R, br)
 plot(philly_sf["HOMIC_R"], main = "Philadelphia homicide rate per 100,000", col = pal[as.numeric(hr_cuts)])
-legend(1760000, 471000, legend = paste("<", round(br[-1])), fill = pal)                       
+legend(1760000, 471000, legend = paste("<", round(br[-1])), fill = pal)        
 ```
 
 ```{r echo=F, message=FALSE}
 philly_sf <-  st_read("~/Desktop/Philly3/Philly3.shp", quiet = T)
 hr_cuts <-  cut(philly_sf$HOMIC_R, br)
 plot(philly_sf["HOMIC_R"], main = "Philadelphia homicide rate per 100,000", col = pal[as.numeric(hr_cuts)])
-legend(1760000, 471000, legend = paste("<", round(br[-1])), fill = pal)                       
+legend(1760000, 471000, legend = paste("<", round(br[-1])), fill = pal)
 ```
    
 
@@ -265,7 +266,7 @@ legend(1760000, 471000, legend = paste("<", round(br[-1])), fill = pal)
 
 
 
-# 2. Choropleth mapping with `ggplot2`
+# 3. Choropleth mapping with `ggplot2`
 
 [`ggplot2`](http://ggplot2.org/) is a widely used and powerful plotting library for R. It is not specifically geared towards mapping, but one can generate great maps. 
 
@@ -367,7 +368,7 @@ ggplot() + # initialize ggplot
     ggplot(philly_sf) + geom_sf(aes(fill=HOMIC_R))
 
 
-# 3. Adding basemaps with `ggmap`
+# 4. Adding basemaps with `ggmap`
 
 `ggmap` builds on `ggplot` and allows to pull in tiled basemaps from different services, like Google Maps and OpenStreetMaps[^6].
 
@@ -461,7 +462,7 @@ Be aware that the `ggmap` library also includes functions for distance calculati
 [^6]: Note that the use of Stamen Maps currently only works with a patch and that Cloudmade maps retired its API so it is no longer possible to be used as basemap. [`RgoogleMaps`](https://CRAN.R-project.org/package=RgoogleMaps) is another library that provides an interface to query the Google server for static maps.
 
 
-# 4. Choropleth with `tmap`
+# 5. Choropleth with `tmap`
 
 `tmap` also borrows from the ggplot syntax and is specifically designed to make creation of thematic maps more convenient. It takes care of a lot of the styling and aesthetics. This reduces our amount of code significantly. We only need: 
 
@@ -504,7 +505,7 @@ philly_tmap
 The `tmap` library also includes functions for simple spatial operations, geocoding and reverse geocoding using OSM. For more check `vignette("tmap-nutshell") `. 
 
 
-# 5. Web mapping with `leaflet`
+# 6. Web mapping with `leaflet`
 
 Lastly, `leaflet`[^7] makes use of the widely known ['Leaflet' JavaScript library](http://leafletjs.com), "the leading open-source JavaScript library for mobile-friendly interactive maps". We have already seen a simple use of leaflet in the `tmap` example. 
 
