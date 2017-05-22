@@ -1,5 +1,5 @@
 ---
-title: "Operations with Spatial Data in R"
+title: "Operations with Spatial Vector Data in R"
 author: "claudia a engel"
 date: "Last updated: `r format(Sys.time(), '%B %d, %Y')`"
 output: 
@@ -12,18 +12,23 @@ output:
 ```{r setup, include=FALSE}
 ## libraries needed for R code examples
 library(sp)
-library(raster)
 library(rgdal)
 library(rgeos)
 library(sf)
 ```
 ***
 
-In this section we will look at some libraries and commands that allow us to process spatial data in R and perform a few commonly used operations.
+In this section we will look at some libraries and commands that allow us to process vector data in R and perform a few exemplary operations.
 
-Before we start, please make sure you have the `sp`, `rgdal`, and `rgeos` installed. For `rgdal` installation instructions refer to [this earlier notebook](https://cengel.github.io/rspatial/2_spDataTypes.nb.html). 
+Libraries needed:
 
-Data needed are [`RSpatialDataOps.zip`](https://www.dropbox.com/s/nrc89agtiiwf0m3/RSpatialDataOps.zip?dl=1)
+* `sp`
+* `rgdal`
+* `rgeos` 
+* `sf`
+
+Data needed:
+[`RSpatialDataOps.zip`](https://www.dropbox.com/s/nrc89agtiiwf0m3/RSpatialDataOps.zip?dl=1)
 
 # 1. Attribute Join
 
@@ -37,13 +42,13 @@ In order to combine a `Spatial*Dataframe` with another table (which would be a d
 
 ![Attribute Join of countryData table to worldCountries using unique ID variables](images/attrJoin.png)
 
-The `sp` package has a `merge` command which extends the one from the base package and works with Spatial* objects[^4].
+Attribute joins in R can very simply be done with the `merge` command. Since an `sf` object is just an extension of the data frame, it works exactly as we would expect.
 
-[^4]: The `geo_join()` command from the [`tigris` package](https://cran.r-project.org/web/packages/tigris/index.html) also provides a convenient way to merge a data frame to a spatial data frame.
+The `sp` package has a `merge` command which extends the one from the base package and works with Spatial* objects.
 
 Assume we have:
 
-* a `SpatialPolygonObject` named _worldCountries_, and
+* a shape file named _worldCountries_ and
 * a dataframe called _countryData_ with the attribute data to join
 
 where:
@@ -54,58 +59,72 @@ where:
 We would then say:
 
 ```
-require(sp) # make sure it is loaded
+# for sf
+worldCountries <- merge(worldCountries, countryData, by.x = "id-number", by.y = "countryID"
+
+# for sp
+require(sp) # just to make sure it is loaded
 worldCountries <- merge(worldCountries, countryData, by.x = "id-number", by.y = "countryID")
 ```
 If the names of the ID columns match, we can omit them.
 
-***
-### Exercise 1
+Other R packages also may have convenience functions to do attribute joins. For example, the `geo_join()` command from the [`tigris` package](https://CRAN.R-project.org/package=tigris) provides a convenient way to merge a data frame to a spatial data frame.
 
-#. Load the `rgdal` and `sp` packages.
+***
+## Exercise 1
 
 #. Download and unzip [`RSpatialDataOps.zip`](https://www.dropbox.com/s/nrc89agtiiwf0m3/RSpatialDataOps.zip?dl=1)
 
-#. Read the `PhillyTotalPopHHinc` shapefile into an object named `philly`.
+#. Load the CSV table `PhillyEducAttainment.csv` (in the `nhgisPhilly_csv` folder) into a dataframe in R and name it `edu`.
 
-#. Load the CSV table `PhillyEducAttainment.csv` (in the nhgisPhilly_csv folder) into a dataframe in R and name it `edu`.
+#. Read the `PhillyTotalPopHHinc` shapefile into an object named `philly_sp` or `philly_sf`, depending on which route you go. 
 
-#. Check out the column names of `philly` and and of `edu` to determine which one might contain the unique identifier for the join. Hint: use the `names()` command. (If you are interested in what those data are, you can take a look at the codebook _PhillyEducAttainment_nhgis2010_tract_codebook.txt_)
+#. Check out the column names of `philly_sp/philly_sf` and of `edu` to find the column with the unique identifier. (If you are interested in what those data are, you can take a look at the codebook _PhillyEducAttainment_nhgis2010_tract_codebook.txt_)
 
-#. Join the `edu` data frame with `philly` using `merge` as described above. Use the `names()` command to see if the join was successful.
+#. Join the `edu` data frame with `philly_sp/philly_sf` using `merge` as described above. Use the `names()` command to see if the join was successful.
 
 > Try before you peek!
 
 ```{r eval=FALSE}
-library(rgdal)
-library(sp)
-
-philly <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc") 
-
 edu <- read.csv("~/Desktop/RSpatialDataOps/nhgisPhilly_csv/PhillyEducAttainment.csv")
-
-names(philly)
 names(edu)
 
-philly_merged <- merge(philly, edu)
+## sf ##
+library(sf)
+philly_sf <- st_read("~/Desktop/RSpatialDataOps/Philly/")
+names(philly_sf)
 
-names(philly_merged)
+philly_sf_merged <- merge(philly, edu)
+names(philly_sf_merged) # note the geometry column
+
+## sp ##
+library(rgdal)
+library(sp)
+philly_sp <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc") 
+
+# this is sp::merge() -- what happens if we use base::merge()?
+philly_sp_merged <- merge(philly_sp, edu) 
+
+names(philly_sp_merged) # no geometry column here
 ```
 
 ***
 
 
 # 2. Reprojecting
-Not unfrequently you may have to reproject spatial objects that you perhaps have acquired from differnet sources and that you need to be in the same Coordinate Reference System (CRS). The `sp` package has a function called `spTransform()` that will do this for you. The function takes as a minimum the following two arguments:
+
+Not unfrequently you may have to reproject spatial objects that you perhaps have acquired from differnet sources and that you need to be in the same Coordinate Reference System (CRS). Both `sf` and `sp` packages have a simple function for this.
+
+The `sp` package has a function called `spTransform()` that will do this for you. The function takes as a minimum the following two arguments:
 
 * the `Spatial*` object to reproject
-* a CRS object with the new projection definition
+* a __CRS object__ (created using the `CRS()` command), with the new projection definition
 
-If for, example, we have an object called `MyCity` and we want to reproject this into a new projection `MyNewProjection`, we would say:
+If for, example, we have an object called `world_countries` and we want to reproject this into a new projection `my_new_projection`, we would say:
 
 ```
-MyNewProjection <- CRS("definition of projection goes here as string")
-spTransform(MyCity, MyNewProjection)
+my_new_projection <- CRS("definition of projection goes here as string")
+spTransform(world_countries, my_new_projection)
 ```
 
 The perhaps trickiest part here is to determine the definition of the projection, which needs to be a character string in [proj4](http://trac.osgeo.org/proj/) format. You can [look it up online](http://www.spatialreference.org). For example for [UTM zone 33N (EPSG:32633)](http://spatialreference.org/ref/epsg/wgs-84-utm-zone-33n/) the string would be:
@@ -114,68 +133,88 @@ The perhaps trickiest part here is to determine the definition of the projection
 
 You can retrieve the CRS from an existing `Spatial*` object with the `proj4string()` command. 
 
+The `sf` package equivalent is - you guessed it! - `st_transform()`. The function takes the following two arguments:
+
+* the `sf` object to reproject
+* the CRS, which can either be a string as above, or an integer, if you know the EPSG code.
+
+Note that you can transform any object of class `sf`, `sfc` or `sfg`.
+
+To retrieve the CRS of an `sf` object use `st_crs()`
+
 ***
 
 ### Exercise 2
 
-#. From the files downloaded earlier read the `PhillyHomicides` shapefile into R and name it `ph_homicides`.
+#. From the files downloaded earlier read the `PhillyHomicides` shapefile into R and name it `ph_homicides_sf` or `ph_homicides_sp`.
 
-#. What is the CRS of `philly`?   What is the CRS of `ph_homicides`?
+#. What is the CRS of `philly_*`?   What is the CRS of `ph_homicides_*`?
 
-#. Reproject `ph_homicides` so it matches the projection of `philly` and assign it to a new object called `ph_homicides_aea`.
+#. Reproject `ph_homicides_*` so it matches the projection of `philly_*` and assign it to a new object called `ph_homicides_aea`.
 
-#. Use `range()` and `coordinates()` to compare the coordinates before and after repojection.   
-
-#. Compare them visually by using `plot()` 
+#. Use `range()` and `coordinates()` / `st_coorinates()` to compare the coordinates before and after repojection.   
 
 > Try before you peek!
 
 ```{r eval=FALSE}
-ph_homicides <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/PhillyCrime/", "PhillyHomicides")
+## sf ##
+ph_homicides_sf <- st_read("~/Desktop/RSpatialDataOps/PhillyCrime/")
+st_crs(philly_sf)
+st_crs(ph_homicides_sf)
+ph_homicides_aea_sf <- st_transform(ph_homicides_sf, st_crs(philly_sf))
 
-proj4string(philly)
-proj4string(ph_homicides)
+range(st_coordinates(ph_homicides_aea_sf))
+range(st_coordinates(ph_homicides_sf))
 
-ph_homicides_aea <- spTransform(ph_homicides, CRS(proj4string(philly)))
+## sp ##
+ph_homicides_sp <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/PhillyCrime/", "PhillyHomicides")
+proj4string(philly_sp)
+proj4string(ph_homicides_sp)
+ph_homicides_aea_sp <- spTransform(ph_homicides_sp, CRS(proj4string(philly_sp)))
 
-range(coordinates(ph_homicides))
-range(coordinates(ph_homicides_aea))
-
-par(mfrow=c(1,2)) 
-plot(ph_homicides, axes=TRUE)
-plot(ph_homicides_aea, axes=TRUE)
+range(coordinates(ph_homicides_aea_sp))
+range(coordinates(ph_homicides_sp))
 ```
 
-You should see something like:
+If you plotted the `sp` object with 
+
+    par(mfrow=c(1,2), cex=0.7) 
+    plot(ph_homic, pch=20, axes=TRUE)
+    plot(ph_homic_aea, pch=20, axes=TRUE)
+
+you should see something like this:
 
 ```{r echo=FALSE, fig.height=4, fig.width=10}
-philly <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc", verbose = F) 
-ph_homicides <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/PhillyCrime/", "PhillyHomicides", verbose = F)
-ph_homicides_aea <- spTransform(ph_homicides, CRS(proj4string(philly)))
-par(mfrow=c(1,2)) 
-plot(ph_homicides, axes=TRUE)
-plot(ph_homicides_aea, axes=TRUE)
+ph <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc", verbose = F) 
+ph_homic <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/PhillyCrime/", "PhillyHomicides", verbose = F)
+ph_homic_aea <- spTransform(ph_homic, CRS(proj4string(ph)))
+par(mfrow=c(1,2), cex=0.7) 
+plot(ph_homic, pch=20, axes=TRUE)
+plot(ph_homic_aea, pch=20, axes=TRUE)
 ```
 
 ***
 
 # 3. Spatial aggregation: Points in Polygons
 
-For the next exercise we want to count all the homicides for each census tract in Philadelphia. To achieve this this we join the points of homicide incidence to the census tract polygon. You might be familiar with this operation from other GIS packages.
+For the next exercise we want to calculate the homicide ratio for each census tract in Philadelphia as 
 
-In R we will use the `aggregate()` function from the `sp` package[^3]. Here are the arguments that it needs:
+    homicides per tract / total population per tract.
 
-* the `SpatialPointDataframe` with the incidents as point locations, 
-* the `SpatialPolygonDataframe` with the polygons to aggregate on, and  
-* an aggregate function. Examples are sum, mean, or max. Since we are just interested in counting the points, we can use `length` (of the respective vectors of the aggregated data). 
+For this we need to count all the homicides for each census tract in Philadelphia. To achieve this this we join the points of homicide incidence to the census tract polygon. You might be familiar with this operation from other GIS packages.
 
+For `sp` objects we can use the `aggregate()` function[^3]. Here are the arguments that it needs:
+
+* the `SpatialPointDataframe` with the homicide incidents as point locations, 
+* the `SpatialPolygonDataframe` with the census tract polygons to aggregate on, and  
+* an aggregate function. Since we are interested in counting the points (i.e. the rows of all the points that belong to a certain polygon), we can use `length` (of the respective vectors of the aggregated data). 
 
 [^3]: There is also an `aggregate()` function in the `stats` package that comes with the R standard install. Note that `sp` extends this function so it can take `Spatial*` objects and aggregate over the geometric features.
 
 ***
 ### Exercise 3
 
-#. Count homicides per census tract. Use `ph_homicides_aea` for homicide incidents and `philly` to aggregate on and save the result as `ph_homicides_agg`. Use `length` as aggregate function. (Look up `?sp::aggregate` if you need help.)
+#. Count homicides per census tract. Use the `OBJECTID` field from `ph_homicides_aea*` for homicide incidents and `philly_*` to aggregate on and save the result as `ph_homicides_agg`. Use `length` as aggregate function. (Look up `?sp::aggregate` if you need help.)
 
 #. Out of couriosity try to use `ph_homicides` for homicide incidents. What happens?
 
@@ -188,123 +227,126 @@ In R we will use the `aggregate()` function from the `sp` package[^3]. Here are 
 > Try before you peek!
 
 ```{r eval=FALSE}
-ph_homicides_agg <- aggregate(x = ph_homicides_aea, by = philly, FUN = length)
+ph_homicides_agg_sp <- aggregate(x = ph_homicides_aea_sp["OBJECTID"], by = philly_sp, FUN = length)
 # make sure you understand this error message:
-aggregate(x = ph_homicides, by = philly, FUN = length)  
+aggregate(x = ph_homicides, by = philly_sp, FUN = length)  
 
 class(ph_homicides_agg)
 names(ph_homicides_agg)
 head(ph_homicides_agg)
 
-ph_homicides_agg$hom_ratio <- ph_homicides_agg$OBJECTID/philly$totalPop
-hist(ph_homicides_agg$hom_ratio, nclass=100)
+ph_homicides_agg_sp$hom_ratio <- ph_homicides_agg_sp$OBJECTID/philly_sp$totalPop
+hist(ph_homicides_agg_sp$hom_ratio, nclass=100)
 ```
 
-There might be other instances where we don't want to aggregate, but might only want to know which polygon a point falls into. In that case we can use `over()`. In fact, the `aggregate()` function used above makes use of `over()`. See https://cran.r-project.org/web/packages/sp/vignettes/over.pdf for more details on the over-methods. `point.in.poly()` from the `spatialEco` package intersects point and polygons and adds polygon attributes to points. There is also `point.in.polygon()` from the `sp` package which tests if a point or poins fall in a given polygon.
+There might be other instances where we don't want to aggregate, but might only want to know which polygon a point falls into. In that case we can use `over()`. In fact, the `aggregate()` function used above makes use of `over()`. See https://cran.r-project.org/web/packages/sp/vignettes/over.pdf for more details on the over-methods. `point.in.poly()` from the [`spatialEco`](https://cran.r-project.org/package=spatialEco) package intersects point and polygons and adds polygon attributes to points. There is also `point.in.polygon()` from the `sp` package which tests if a point or set of points fall in a given polygon.
+
+For `sf` objects we need to add one more step. We first use `st_within()` to determine the polygon which points falls into. We can then use the result to aggregate by.
+
+```{r eval=F}
+point_in_poly <- st_within(ph_homicides_aea_sf, philly_sf) # determine which poly each point falls into
+pp <- as.numeric(as.character(point_in_poly)) # we need a vector
+ph_homicides_agg_sf <- aggregate(ph_homicides_aea_sf["OBJECTID"], by = pp, length)
+hist(unlist(ph_homicides_agg_sf$OBJECTID)/philly_sf$totalPop, nclass=100)
+```
 
 ***
 
 
 # 4. Select Polygons by Location
 
-For the following example we will need to make use of an additional another library, called `rgeos`. Make sure you load it. 
-
-Our goal is to select all Philadelphia census tracts within a range of 2 kilometers from the city center.
+For the next example our goal is to select all Philadelphia census tracts within a range of 2 kilometers from the city center.
 
 > Think about this for a moment -- what might be the steps you'd follow?
 
 ```{r eval=FALSE}
 ## How about:
 
-# 1. Get the polygons
-# 2. Find the city center coordinates
-# 3. Create a buffer around the center
-# 4. Select all polys that fall in the buffer
+# 1. Get the census tract polygons.
+# 2. Find the Philadelphia city center coordinates.
+# 3. Create a buffer around the city center point.
+# 4. Select all census tract polygons that intersect with the center buffer
 
 ```
 
+## Spatial operations with `sp`
+
+In order to perform those operations on an `sp` object we will need to make use of an additional another library, called `rgeos`. Make sure you have it loaded.
 
 ### Exercise 4
 
-#. Get the polygons.  
+1. Get the census tract polygons.  
 We got those.  
-We will reuse `philly` for the census tract polygons.
+We will reuse `philly_sp` for the census tract polygons.
 
-#. Find the city center coordinates.  
+2. Find the Philadelphia city center coordinates.  
 Ok. I will tell you:  
-    Lat is 39.95258 and Lon is -75.16522. 
+Lat is 39.95258 and Lon is -75.16522. This is in WGS84.  
+With this information, create a `SpatialPoints` object named `philly_ctr`.  
 
-    With this information, create a `SpatialPoints` object named `philly_ctr`.  
+```{r eval=FALSE}
+coords <- data.frame(x = -75.16522, y = 39.95258) # set the coordinates
+prj <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") # the projection string for WGS84
+philly_ctr <- SpatialPoints(coords, proj4string = prj) # create the spatialPoints
+```
 
-#. Create a buffer around the center.  
-Here is where we will use the `gBuffer()` function from the `rgeos` package. The function can take a number of arguments, but for this purpose we will only need two: the __sp object__ and the __width__ of the buffer, which is assumed to be in map units. The function returns a `SpatialPolygons` object to you with the buffer - name it `philly_buf`.  
+3. Create a buffer around the city center point.  
+Here is where we will use the `gBuffer()` function from the `rgeos` package. For this purpose we will need to provide two arguments: the __sp object__ and the __width__ of the buffer, which is assumed to be in map units. The function returns a `SpatialPolygons` object to you with the buffer - name it `philly_buf`.  
 So your command would look something like  
 ```
 philly_buf <- gBuffer(the_spatial_point_object, width = a_number_here)
 ```  
-Now -- __before you create this buffer__, think about what you might need to do to `philly_ctr` before you proceed.
-
-#. Select all polys that fall in the buffer.  
-We will use the `gIntersects()` function from the `rgeos` package for this. The function tests if two geometries (let's name them _spgeom1_ and _spgeom2_) have points in common or not. `gIntersects` returns TRUE if _spgeom1_ and _spgeom2_ have at least one point in common.  
-Here is where we determine if the census tracts fall within the buffer. In addition to our two sp objects (`philly_buf` and `philly`) we need to provide one more argument, `byid`. It determines if the function should be applied across ids (TRUE) or the entire object (FALSE) for _spgeom1_ and _spgeom2_. The default setting is FALSE. Since we want to compare _every single_ census tract polygon in our `philly` object we need to set it to TRUE.  
-What class of object does `gIntersects()` return and what is its structure?  
-How can you use it to select the desired polygons?
-
-#. Plot philly, the selected polygons and the buffer. Something like the below. 
-
-***
-
-> Try before you peek!
+__Now -- before you create this buffer, think about what you need to do to `philly_ctr` before you proceed.__
 
 ```{r eval=FALSE}
 library(rgeos)
-
-coords <- data.frame(x = -75.16522, y = 39.95258) # set the coordinates
-prj <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") # the projection string
-philly_ctr <- SpatialPoints(coords, proj4string = prj) # create the spatialPoints
-
-philly_ctr_aea <- spTransform(philly_ctr, CRS(proj4string(philly))) # reproject!!
-
+philly_ctr_aea <- spTransform(philly_ctr, CRS(proj4string(philly_sp))) # reproject!!
 philly_buf <- gBuffer(philly_ctr_aea, width=2000)  # create buffer around center
+```
 
-philly_buf_intersects <-  gIntersects (philly_buf, philly, byid=TRUE) # determine which census tracts intersect with the buffer
+4. Select all census tract polygons that intersect with the center buffer  
+We will use the `gIntersects()` function from the `rgeos` package for this. The function tests if two geometries (let's name them _spgeom1_ and _spgeom2_) have points in common or not. `gIntersects` returns TRUE if _spgeom1_ and _spgeom2_ have at least one point in common.  
+Here is where we determine if the census tracts fall within the buffer. In addition to our two sp objects (`philly_buf` and `philly_sp`) we need to provide one more argument, `byid`. It determines if the function should be applied across ids (TRUE) or the entire object (FALSE) for _spgeom1_ and _spgeom2_. The default setting is FALSE. Since we want to compare _every single_ census tract polygon in our `philly_sp` object we need to set it to TRUE.  
+What class of object does `gIntersects()` return and what is its structure?  
+How can you use it to select the desired polygons?
+
+```{r eval=FALSE}
+philly_buf_intersects <-  gIntersects (philly_buf, philly_sp, byid=TRUE) # determine which census tracts intersect with the buffer
 class(philly_buf_intersects)
-str(philly_buf_intersects)
 
-philly_sel <- philly[as.vector(philly_buf_intersects),]
+# subset
+philly_sel <- philly_sp[as.vector(philly_buf_intersects),]
+```
+5. Plot philly, the selected polygons and the buffer. Below you can see it all put together.
 
-plot (philly, border="#aaaaaa")
-plot (philly_sel, add=T, col="red") 
-plot (philly_buf, add=T, lwd = 2)
-
-````
-
-```{r echo=F}
-philly <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc", verbose = F) 
+```{r}
+philly_sp <- readOGR("/Users/cengel/Desktop/RSpatialDataOps/Philly/", "PhillyTotalPopHHinc", verbose = F) 
 coords <- data.frame(x = -75.16522, y = 39.95258)
 philly_ctr <- SpatialPoints(coords, proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")) 
-philly_ctr_aea <- spTransform(philly_ctr, CRS(proj4string(philly))) 
+philly_ctr_aea <- spTransform(philly_ctr, CRS(proj4string(philly_sp))) 
 philly_buf <- gBuffer(philly_ctr_aea, width=2000)
-philly_buf_intersects <-  gIntersects (philly_buf, philly, byid=TRUE)
-philly_sel <- philly[as.vector(philly_buf_intersects),]
-plot (philly, border="#aaaaaa")
+philly_buf_intersects <-  gIntersects (philly_buf, philly_sp, byid=TRUE)
+philly_sel <- philly_sp[as.vector(philly_buf_intersects),]
+plot (philly_sp, border="#aaaaaa")
 plot (philly_sel, add=T, col="red") 
 plot (philly_buf, add=T, lwd = 2)
 ```
 
-# 5. Spatial operations with `sf`
+## Spatial operations with `sf`
 
-To give you a flavor of how this might be done using the `sf` package we will reproduce here the same example as above.
+To give you a sense of how this might be done using the `sf` package we will reproduce here the same example as above. 
+
+For the spatial operations we can recur to the suite of geometric operations that come with the `sf` package , in particular we will use `st_buffer()` and `st_intersects()`
 
 ```{r}
 library(sf)
 philly_sf <- st_read("~/Desktop/RSpatialDataOps/Philly/", quiet = T)
 
-# sf points
-philly_ctr_sf <- st_sfc(st_point(c(-75.16522, 39.95258)), crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+# make a simple feature point with CRS
+philly_ctr_sfc <- st_sfc(st_point(c(-75.16522, 39.95258)), crs = 4326)
 
 # reproject
-philly_ctr_aea_sf <- st_transform(philly_ctr_sf, st_crs(philly_sf))
+philly_ctr_aea_sf <- st_transform(philly_ctr_sfc, st_crs(philly_sf))
 
 # buffer
 philly_buf_sf <- st_buffer(philly_ctr_aea_sf, 2000)
@@ -319,5 +361,15 @@ philly_sel_sf <- philly_sf[unlist(philly_buf_intersects),]
 plot(st_geometry(philly_sf), border="#aaaaaa")
 plot(st_geometry(philly_sel_sf), add=T, col="red")
 plot(st_geometry(philly_buf_sf), add=T, lwd = 2)
-
 ```
+
+# 6. `sp` - `sf` comparison
+|how to.. | for `sp` objects | for `sf` objects |
+|---|---|---|
+|join attributes| `sp::merge()` | `base::merge()` |
+|reproject | `spTransform()` | `st_transform()`|
+|retrieve (or assign) CRS | `proj4string()` | `st_crs()` |
+|count points in polygons| `over()` | `st_within` and `aggregate()` |
+|buffer|  `rgeos::gBuffer()` (separate package) | `st_buffer()` |
+|select by location | [`g*` functions](https://www.rdocumentation.org/packages/rgeos/versions/0.3-22) from `rgeos` | [geos functions](https://www.rdocumentation.org/packages/sf/versions/0.3-4/topics/geos) in `sf` |
+
