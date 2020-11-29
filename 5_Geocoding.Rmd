@@ -293,7 +293,7 @@ write.csv(dogs2, "dangerous_dogs2.csv", row.names=F)
 
 - [`nominatim`](https://github.com/hrbrmstr/nominatim) (not on CRAN) connects to [OSM Nominatim](http://nominatim.openstreetmap.org)
 
-- [`opencage`](https://CRAN.R-project.org/package=opencage) connects to [OpenCage geocoder](https://geocoder.opencagedata.com/) 
+- [`opencage`](https://CRAN.R-project.org/package=opencage) connects to [OpenCage geocoder](https://opencagedata.com/) 
 
 - [threewords](https://CRAN.R-project.org/package=threewords) connects to the [What3Words](http://what3words.com/) 
 
